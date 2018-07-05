@@ -30,6 +30,8 @@ window.addEventListener("load", function() {
 	Cell = (function() {
 		var obj = function(cell) {
 			this.cell = cell;
+			this.cats = [];
+			this.vals = [];
 			this.unique = [];
 		};
 		obj.prototype = {
@@ -48,17 +50,21 @@ window.addEventListener("load", function() {
 			AddUnique: function(group) {
 				this.unique.push(group);
 			},
-			Solve: function() {
-				if (this.Get() == 0) {
+			Solve: function(data) {
+				if (this.Get() === 0) {
 					if (this.unique.some(u => u.every(cell => cell.Get() == -1))) {
 						this.Set(1);
+						return false;
 					} else if (this.unique.some(u => u.filter(cell => cell.Get() == 1).length == 1)) {
 						this.Set(-1);
+						return false;
 					}
-					if (this.Get() != 0) {
-						this.unique.forEach(u => u.filter(cell => cell.Get() == 0).forEach(cell => cell.Solve()));
-					}
+					return true;
 				}
+				if (this.Get() === 1) {
+
+				}
+				return true;
 			}
 		};
 		return obj;
@@ -195,6 +201,8 @@ window.addEventListener("load", function() {
 						} else {
 							elm.setAttribute("class", "");
 						}
+						cell.cats = Array(rowCatTitle, columnCatTitle);
+						cell.vals = Array(rowTitle, columnTitle);
 						data[rowCatTitle][rowTitle][columnCatTitle][columnTitle] = cell;
 						data[columnCatTitle][columnTitle][rowCatTitle][rowTitle] = cell;
 					});
@@ -212,7 +220,7 @@ window.addEventListener("load", function() {
 		Object.values(data).forEach(a => Object.values(a).forEach(b => Object.values(b).forEach(c => Object.keys(c).forEach(d => c[d].AddUnique(Object.keys(c).filter(e => e != d).map(f => c[f]))))));
 		rules.addEventListener("blur", parseRules.bind(rules, categories));
 		solver.textContent = "Solve";
-		solver.addEventListener("click", cells.forEach.bind(cells, cell => cell.Solve()));
+		solver.addEventListener("click", function() {while(!this()){}}.bind(cells.every.bind(cells, cell => cell.Solve(data))));
 		document.body.appendChild(table);
 		document.body.appendChild(rules);
 		document.body.appendChild(solver);
