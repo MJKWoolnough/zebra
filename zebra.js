@@ -30,6 +30,7 @@ window.addEventListener("load", function() {
 	Cell = (function() {
 		var obj = function(cell) {
 			this.cell = cell;
+			this.unique = [];
 		};
 		obj.prototype = {
 			Get: function() {
@@ -43,6 +44,21 @@ window.addEventListener("load", function() {
 			},
 			Set: function(val) {
 				this.cell.setAttribute("class", (this.cell.getAttribute("class").includes("first") ? "first " : "") + (val == 1 ? "on" : (val == -1 ? "off" : "")));
+			},
+			AddUnique: function(group) {
+				this.unique.push(group);
+			},
+			Solve: function() {
+				if (this.Get() == 0) {
+					if (this.unique.some(u => u.every(cell => cell.Get() == -1))) {
+						this.Set(1);
+					} else if (this.unique.some(u => u.some(cell => cell.Get() == 1))) {
+						this.Set(-1);
+					}
+					if (this.Get() != 0) {
+						this.unique.forEach(u => u.filter(cell => cell.Get() == 0).forEach(cell => cell.Solve()));
+					}
+				}
 			}
 		};
 		return obj;
@@ -101,8 +117,9 @@ window.addEventListener("load", function() {
 		    secondRow = thead.appendChild(createElement("tr")),
 		    tbody = table.appendChild(createElement("tbody")),
 		    rules = createElement("textarea"),
-		    solver = createElement("button");
-		var firstCell = firstRow.appendChild(createElement("td"));
+		    solver = createElement("button"),
+		    cells = [],
+		    firstCell = firstRow.appendChild(createElement("td"));
 		firstCell.setAttribute("colspan", "2");
 		firstCell.setAttribute("rowspan", "2");
 
@@ -137,6 +154,7 @@ window.addEventListener("load", function() {
 					for (var i = 0; i < numRows; i++) {
 						var elm = row.appendChild(createElement("td")),
 						    cell = new Cell(elm);
+						cells.push(cell);
 						elm.addEventListener("click", function() {
 							if (this.Get() == 1) {
 								this.Set(0);
@@ -168,15 +186,13 @@ window.addEventListener("load", function() {
 		});
 		rules.addEventListener("blur", parseRules.bind(rules, categories));
 		solver.textContent = "Solve";
-		solver.addEventListener("click", solve.bind(categories));
+		solver.addEventListener("click", cells.forEach.bind(cells, cell => cell.Solve()));
 		document.body.appendChild(table);
 		document.body.appendChild(rules);
 		document.body.appendChild(solver);
 	},
 	parseRules = function(categories) {
 
-	},
-	solve = function(categories) {
 	};
 	init();
 });
