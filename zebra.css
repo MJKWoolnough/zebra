@@ -1,0 +1,77 @@
+#info {
+	display: inline-flex;
+	flex-wrap: wrap;
+}
+
+#info > div {
+	border : 1px solid #000;
+	border-collapse: collapse;
+	display: table-cell;
+}
+
+table {
+	border-spacing: 0;
+	border-collapse: collapse;
+}
+
+tbody td {
+	background-color: #fff;
+	border: 1px dashed #888;
+}
+
+td.span {
+	background-color: #888;
+}
+
+th {
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+}
+
+thead tr:last-child th, tbody tr th.cat {
+	text-orientation: sideways;
+	transform: rotate(180deg);
+	writing-mode: vertical-lr;
+	width : 1.5em;
+}
+
+thead tr:first-child th {
+	border-bottom: 1px dashed #888;
+	border-left: 2px solid #000;
+	border-right: 2px solid #000;
+}
+
+thead th.first {
+	border-left: 2px solid #000;
+}
+
+thead tr:last-child th:last-child {
+	border-right: 2px solid #000;
+}
+
+tbody tr:first-child th:first-child, tbody tr:first-child th:first-child + th {
+	border-top: 2px solid #000;
+}
+
+tbody th.cat {
+	border-right: 1px dashed #888;
+	border-bottom: 2px solid #000;
+
+}
+
+tbody td.first {
+	border-left: 2px solid #000;
+}
+
+tbody tr.first td:not(.span) {
+	border-top: 2px solid #000;
+}
+
+.on {
+	background-color: #0f0;
+}
+
+.off {
+	background-color: #f00;
+}
