@@ -129,7 +129,7 @@ window.addEventListener("load", function() {
 			catTitle.setAttribute("colspan", numRows);
 			cat.Values.forEach(function(title, pos) {
 				var cell = secondRow.appendChild(createElement("th"));
-				cell.textContent = title;
+				cell.appendChild(createElement("div")).textContent = title;
 				if (pos === 0) {
 					cell.setAttribute("class", "first");
 				}
@@ -140,7 +140,7 @@ window.addEventListener("load", function() {
 				var row = tbody.appendChild(createElement("tr"));
 				if (cpos == 0) {
 					var catTitle = row.appendChild(createElement("th"));
-					catTitle.textContent = cat.Title;
+					catTitle.appendChild(createElement("div")).textContent = cat.Title;
 					catTitle.setAttribute("rowspan", numRows);
 					catTitle.setAttribute("class", "cat");
 					row.setAttribute("class", "first");

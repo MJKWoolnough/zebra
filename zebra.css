@@ -29,11 +29,10 @@ th {
 	-webkit-user-select: none;
 }
 
-thead tr:last-child th, tbody tr th.cat {
-	text-orientation: sideways;
+thead tr:last-child th > div, tbody tr th.cat > div {
 	transform: rotate(180deg);
-	writing-mode: vertical-lr;
-	width : 1.5em;
+	writing-mode: vertical-rl;
+	min-width: 1.5em;
 }
 
 thead tr:first-child th {
@@ -42,7 +41,7 @@ thead tr:first-child th {
 	border-right: 2px solid #000;
 }
 
-thead th.first {
+thead th.first, tbody td.first {
 	border-left: 2px solid #000;
 }
 
@@ -50,7 +49,7 @@ thead tr:last-child th:last-child {
 	border-right: 2px solid #000;
 }
 
-tbody tr:first-child th:first-child, tbody tr:first-child th:first-child + th {
+tbody tr:first-child th:first-child, tbody tr th:first-child + th, tbody tr.first td:not(.span) {
 	border-top: 2px solid #000;
 }
 
@@ -60,12 +59,8 @@ tbody th.cat {
 
 }
 
-tbody td.first {
-	border-left: 2px solid #000;
-}
-
-tbody tr.first td:not(.span) {
-	border-top: 2px solid #000;
+tbody tr:last-child th {
+	border-bottom: 2px solid #000;
 }
 
 .on {
