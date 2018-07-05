@@ -52,7 +52,7 @@ window.addEventListener("load", function() {
 				if (this.Get() == 0) {
 					if (this.unique.some(u => u.every(cell => cell.Get() == -1))) {
 						this.Set(1);
-					} else if (this.unique.some(u => u.some(cell => cell.Get() == 1))) {
+					} else if (this.unique.some(u => u.filter(cell => cell.Get() == 1).length == 1)) {
 						this.Set(-1);
 					}
 					if (this.Get() != 0) {
@@ -119,9 +119,25 @@ window.addEventListener("load", function() {
 		    rules = createElement("textarea"),
 		    solver = createElement("button"),
 		    cells = [],
-		    firstCell = firstRow.appendChild(createElement("td"));
+		    firstCell = firstRow.appendChild(createElement("td")),
+		    data = {};
 		firstCell.setAttribute("colspan", "2");
 		firstCell.setAttribute("rowspan", "2");
+		categories.forEach(function(cat) {
+			var crosses = {};
+			cat.Values.forEach(function(val) {
+				var mdata = {};
+				categories.filter(mcat => mcat != cat).forEach(function(mcat) {
+					var values = {};
+					mcat.Values.forEach(function(val) {
+						values[val.toUpperCase()] = null;
+					});
+					mdata[mcat.Title.toUpperCase()] = values;
+				});
+				crosses[val.toUpperCase()] = mdata;
+			});
+			data[cat.Title.toUpperCase()] = crosses;
+		});
 
 		categories.slice(1).forEach(function(cat) {
 			var catTitle = firstRow.appendChild(createElement("th"));
@@ -136,8 +152,10 @@ window.addEventListener("load", function() {
 			});
 		});
 		categories.slice(2).concat(categories[0]).reverse().forEach(function(cat, pos) {
+			var rowCatTitle = cat.Title.toUpperCase();
 			cat.Values.forEach(function(title, cpos) {
-				var row = tbody.appendChild(createElement("tr"));
+				var row = tbody.appendChild(createElement("tr")),
+				    rowTitle = title.toUpperCase();
 				if (cpos == 0) {
 					var catTitle = row.appendChild(createElement("th"));
 					catTitle.appendChild(createElement("div")).textContent = cat.Title;
@@ -151,10 +169,12 @@ window.addEventListener("load", function() {
 					cell.setAttribute("class", "first");
 				}
 				categories.slice(1, categories.length - pos).forEach(function(mcat) {
-					for (var i = 0; i < numRows; i++) {
+					var columnCatTitle = mcat.Title.toUpperCase();
+					mcat.Values.forEach(function(val, i) {
 						var elm = row.appendChild(createElement("td")),
-						    cell = new Cell(elm);
-						cells.push(cell);
+						    cell = new Cell(elm),
+						    columnTitle = val.toUpperCase();
+						cells.push(cell) - 1;
 						elm.addEventListener("click", function() {
 							if (this.Get() == 1) {
 								this.Set(0);
@@ -175,7 +195,9 @@ window.addEventListener("load", function() {
 						} else {
 							elm.setAttribute("class", "");
 						}
-					}
+						data[rowCatTitle][rowTitle][columnCatTitle][columnTitle] = cell;
+						data[columnCatTitle][columnTitle][rowCatTitle][rowTitle] = cell;
+					});
 				});
 				if (pos > 0) {
 					var span = row.appendChild(createElement("td"));
@@ -184,6 +206,10 @@ window.addEventListener("load", function() {
 				}
 			});
 		});
+		window.Set = function(cat1, title1, cat2, title2, onoff) {
+			this[cat1.toUpperCase()][title1.toUpperCase()][cat2.toUpperCase()][title2.toUpperCase()].Set(onoff);
+		}.bind(data);
+		Object.values(data).forEach(a => Object.values(a).forEach(b => Object.values(b).forEach(c => Object.keys(c).forEach(d => c[d].AddUnique(Object.keys(c).filter(e => e != d).map(f => c[f]))))));
 		rules.addEventListener("blur", parseRules.bind(rules, categories));
 		solver.textContent = "Solve";
 		solver.addEventListener("click", cells.forEach.bind(cells, cell => cell.Solve()));
