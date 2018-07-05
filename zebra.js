@@ -27,6 +27,26 @@ window.addEventListener("load", function() {
 		};
 		return obj;
 	}()),
+	Cell = (function() {
+		var obj = function(cell) {
+			this.cell = cell;
+		};
+		obj.prototype = {
+			Get: function() {
+				switch (this.cell.getAttribute("class").replace(/^first /, "")) {
+				case "on":
+					return 1;
+				case "off":
+					return -1;
+				}
+				return 0;
+			},
+			Set: function(val) {
+				this.cell.setAttribute("class", (this.cell.getAttribute("class").includes("first") ? "first " : "") + (val == 1 ? "on" : (val == -1 ? "off" : "")));
+			}
+		};
+		return obj;
+	}()),
 	init = function() {
 		clearNode(document.body);
 		var categories = [],
@@ -115,26 +135,27 @@ window.addEventListener("load", function() {
 				}
 				categories.slice(1, categories.length - pos).forEach(function(mcat) {
 					for (var i = 0; i < numRows; i++) {
-						var cell = row.appendChild(createElement("td"));
-						cell.addEventListener("click", function(i, e) {
-							var className = this.getAttribute("class").includes("on") ? "":"on";
-							if (i == 0) {
-								className += " first";
+						var elm = row.appendChild(createElement("td")),
+						    cell = new Cell(elm);
+						elm.addEventListener("click", function() {
+							if (this.Get() == 1) {
+								this.Set(0);
+							} else {
+								this.Set(1);
 							}
-							this.setAttribute("class", className);
 						}.bind(cell, i));
-						cell.addEventListener("contextmenu", function(i, e) {
+						elm.addEventListener("contextmenu", function(e) {
 							e.preventDefault();
-							var className = this.getAttribute("class").includes("off") ? "":"off";
-							if (i == 0) {
-								className += " first";
+							if (this.Get() == -1) {
+								this.Set(0);
+							} else {
+								this.Set(-1);
 							}
-							this.setAttribute("class", className);
-						}.bind(cell, i));
+						}.bind(cell));
 						if (i == 0) {
-							cell.setAttribute("class", "first");
+							elm.setAttribute("class", "first");
 						} else {
-							cell.setAttribute("class", "");
+							elm.setAttribute("class", "");
 						}
 					}
 				});
