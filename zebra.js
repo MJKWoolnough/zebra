@@ -51,20 +51,31 @@ window.addEventListener("load", function() {
 				this.unique.push(group);
 			},
 			Solve: function(data) {
+				var unchanged = true,
+				    self = this;
 				if (this.Get() === 0) {
 					if (this.unique.some(u => u.every(cell => cell.Get() == -1))) {
 						this.Set(1);
-						return false;
+						unchanged = false;
 					} else if (this.unique.some(u => u.filter(cell => cell.Get() == 1).length == 1)) {
 						this.Set(-1);
-						return false;
+						unchanged = false;
 					}
-					return true;
 				}
 				if (this.Get() === 1) {
-
+					Object.keys(data[this.cats[0]][this.vals[0]]).filter(k => k !== this.cats[1]).forEach(k => Object.keys(data[this.cats[0]][this.vals[0]][k]).forEach(function(j) {
+						var valA = data[self.cats[0]][self.vals[0]][k][j],
+						    valB = data[self.cats[1]][self.vals[1]][k][j];
+						if (valA.Get() !== 0 && valB.Get() == 0) {
+							valB.Set(valA.Get());
+							unchanged = false;
+						} else if (valB.Get() !== 0 && valA.Get() == 0) {
+							valA.Set(valB.Get());
+							unchanged = false;
+						}
+					}));
 				}
-				return true;
+				return unchanged;
 			}
 		};
 		return obj;
@@ -218,6 +229,10 @@ window.addEventListener("load", function() {
 			this[cat1.toUpperCase()][title1.toUpperCase()][cat2.toUpperCase()][title2.toUpperCase()].Set(onoff);
 		}.bind(data);
 		Object.values(data).forEach(a => Object.values(a).forEach(b => Object.values(b).forEach(c => Object.keys(c).forEach(d => c[d].AddUnique(Object.keys(c).filter(e => e != d).map(f => c[f]))))));
+		rules.setAttribute("autocomplete", "off");
+		rules.setAttribute("autocorrect", "off");
+		rules.setAttribute("autocapitalize", "off");
+		rules.setAttribute("spellcheck", "off");
 		rules.addEventListener("blur", parseRules.bind(rules, categories));
 		solver.textContent = "Solve";
 		solver.addEventListener("click", function() {while(!this()){}}.bind(cells.every.bind(cells, cell => cell.Solve(data))));
