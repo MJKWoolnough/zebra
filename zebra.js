@@ -233,14 +233,36 @@ window.addEventListener("load", function() {
 		rules.setAttribute("autocorrect", "off");
 		rules.setAttribute("autocapitalize", "off");
 		rules.setAttribute("spellcheck", "off");
-		rules.addEventListener("blur", parseRules.bind(rules, categories));
 		solver.textContent = "Solve";
-		solver.addEventListener("click", function() {while(!this()){}}.bind(cells.every.bind(cells, cell => cell.Solve(data))));
+		solver.addEventListener("click", function() {
+			var ruleFns = [], unchanged = true;
+			rules.value.split("\n").forEach(function(r) {
+				
+			});
+			while(!unchanged){
+				unchanged = this();
+				if (!unchanged) {
+					unchanged = rulesFns.each(r => r());
+				}
+			}
+		}.bind(cells.every.bind(cells, cell => cell.Solve(data))));
 		document.body.appendChild(table);
 		document.body.appendChild(rules);
 		document.body.appendChild(solver);
 	},
-	parseRules = function(categories) {
+	downOf = function() {
+
+	},
+	upOf = function() {
+
+	},
+	downFrom = function() {
+
+	},
+	upFrom = function() {
+
+	},
+	adjacentTo = function() {
 
 	};
 	init();
