@@ -2,7 +2,9 @@
 window.addEventListener("load", function() {
 	var createElement = document.createElementNS.bind(document, document.getElementsByTagName("html")[0].namespaceURI),
 	clearNode = function(node) {
-		node.parentNode.replaceChild(node.cloneNode(false), node);
+		while (node.hasChildNodes()) {
+			node.removeChild(node.lastChild);
+		}
 	},
 	Category = (function() {
 		var obj = function(parent) {
@@ -133,8 +135,10 @@ window.addEventListener("load", function() {
 		    firstRow = thead.appendChild(createElement("tr")),
 		    secondRow = thead.appendChild(createElement("tr")),
 		    tbody = table.appendChild(createElement("tbody")),
-		    rules = createElement("textarea"),
 		    solver = createElement("button"),
+		    addRule = createElement("button"),
+		    rulesList = createElement("table"),
+		    rules = [],
 		    cells = [],
 		    firstCell = firstRow.appendChild(createElement("td")),
 		    data = {};
@@ -191,7 +195,7 @@ window.addEventListener("load", function() {
 						var elm = row.appendChild(createElement("td")),
 						    cell = new Cell(elm),
 						    columnTitle = val.toUpperCase();
-						cells.push(cell) - 1;
+						cells.push(cell);
 						elm.addEventListener("click", function() {
 							if (this.Get() == 1) {
 								this.Set(0);
@@ -229,41 +233,127 @@ window.addEventListener("load", function() {
 			this[cat1.toUpperCase()][title1.toUpperCase()][cat2.toUpperCase()][title2.toUpperCase()].Set(onoff);
 		}.bind(data);
 		Object.values(data).forEach(a => Object.values(a).forEach(b => Object.values(b).forEach(c => Object.keys(c).forEach(d => c[d].AddUnique(Object.keys(c).filter(e => e != d).map(f => c[f]))))));
-		rules.setAttribute("autocomplete", "off");
-		rules.setAttribute("autocorrect", "off");
-		rules.setAttribute("autocapitalize", "off");
-		rules.setAttribute("spellcheck", "off");
 		solver.textContent = "Solve";
-		solver.addEventListener("click", function() {
-			var ruleFns = [], unchanged = true;
-			rules.value.split("\n").forEach(function(r) {
-				
-			});
-			while(!unchanged){
-				unchanged = this();
-				if (!unchanged) {
-					unchanged = rulesFns.each(r => r());
-				}
-			}
-		}.bind(cells.every.bind(cells, cell => cell.Solve(data))));
+		solver.addEventListener("click", function() {while(!this()||!rules.every(r => r())){}}.bind(cells.every.bind(cells, cell => cell.Solve(data))));
+		addRule.textContent = "Add Rule";
+		addRule.addEventListener("click", (function() {
+			var overlay = createElement("div"),
+			    content = overlay.appendChild(createElement("div")),
+			    close = content.appendChild(createElement("button")),
+			    ongoing = content.appendChild(createElement("div")),
+			    title = content.appendChild(createElement("h1")),
+			    choices = content.appendChild(createElement("div")),
+			    catA = "",
+			    catAClick = function(c) {
+				catA = c;
+				ongoing.textContent = "In " + c;
+				title.textContent = "First Pivot Category";
+				clearNode(choices);
+				Object.keys(data).filter(k => k != c).forEach(function(cat) {
+					var butt = choices.appendChild(createElement("button"));
+					butt.textContent = cat;
+					butt.addEventListener("click", catBClick.bind(null, cat));
+				});
+			    },
+			    catB = "",
+			    catBClick = function(c) {
+				catB = c;
+				ongoing.textContent += ", Category " + c;
+				title.textContent = "First Pivot Row";
+				clearNode(choices);
+				Object.keys(data[c]).forEach(function(cat) {
+					var butt = choices.appendChild(createElement("button"));
+					butt.textContent = cat;
+					butt.addEventListener("click", rowBClick.bind(null, cat));
+				});
+			    },
+			    rowB = "",
+			    rowBClick = function(c) {
+				rowB = c;
+				ongoing.textContent += ", Row " + c;
+				title.textContent = "Method";
+				clearNode(choices);
+				Object.keys(modes).forEach(function(m) {
+					var butt = choices.appendChild(createElement("button"));
+					butt.textContent = m;
+					butt.addEventListener("click", modeClick.bind(null, m));
+				});
+			    },
+			    modes = {
+				"Adjacent To": function() {return true;},
+				"Left/Up Of": function() {return true;},
+				"Right/Down Of": function() {return true;},
+				"Before": function() {return true;},
+				"After": function() {return true;},
+			    },
+			    mode = function(){},
+			    modeClick = function(c) {
+				mode = modes[c];
+				ongoing.textContent += ", is " + c + " ";
+				title.textContent = "Second Pivot Category";
+				clearNode(choices);
+				Object.keys(data).filter(k => k != c).forEach(function(cat) {
+					var butt = choices.appendChild(createElement("button"));
+					butt.textContent = cat;
+					butt.addEventListener("click", catCClick.bind(null, cat));
+				});
+			    },
+			    catC = "",
+			    catCClick = function(c) {
+				catC = c;
+				ongoing.textContent += "Category " + c;
+				title.textContent = "Second Pivot Row";
+				clearNode(choices);
+				Object.keys(data[c]).filter(k => c !== catB || k != rowB).forEach(function(cat) {
+					var butt = choices.appendChild(createElement("button"));
+					butt.textContent = cat;
+					butt.addEventListener("click", rowCClick.bind(null, cat));
+				});
+			    },
+			    rowC = "",
+			    rowCClick = function(c) {
+				    ongoing.textContent += ", Row " + c;
+				    title.textContent = "";
+				    clearNode(choices);
+				    var butt = choices.appendChild(createElement("button"));
+				    butt.textContent = "Add Rule";
+				    butt.addEventListener("click", addRule);
+			    },
+			    none = function(){return true;},
+			    addRule = function() {
+				var t = rulesList.appendChild(createElement("tr")),
+				    r = t.appendChild(createElement("td")),
+				    remove = r.appendChild(createElement("button")),
+				    n = rules.push(mode.bind(null, catA, catB, rowB, catC, rowC)) - 1,
+				    desc = r.appendChild(createElement("span"));
+				remove.textContent = "X";
+				remove.addEventListener("click", function() {
+					rulesList.removeChild(t);
+					rules[n] = none;
+				});
+				desc.textContent = ongoing.textContent;
+				close.click();
+			    };
+			overlay.setAttribute("id", "overlay");
+			choices.setAttribute("id", "choices");
+			close.addEventListener("click", document.body.removeChild.bind(document.body, overlay));
+			close.innerText = "X";
+			return function() {
+				ongoing.textContent = "";
+				clearNode(choices);
+				title.textContent = "Main Category";
+				Object.keys(data).forEach(function(cat) {
+					var butt = choices.appendChild(createElement("button"));
+					butt.textContent = cat;
+					butt.addEventListener("click", catAClick.bind(null, cat));
+				});
+				document.body.appendChild(overlay);
+			};
+		}()));
 		document.body.appendChild(table);
-		document.body.appendChild(rules);
 		document.body.appendChild(solver);
-	},
-	downOf = function() {
-
-	},
-	upOf = function() {
-
-	},
-	downFrom = function() {
-
-	},
-	upFrom = function() {
-
-	},
-	adjacentTo = function() {
-
+		document.body.appendChild(addRule);
+		document.body.appendChild(rulesList);
 	};
 	init();
 });
