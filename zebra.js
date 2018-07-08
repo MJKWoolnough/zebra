@@ -317,6 +317,7 @@ window.addEventListener("load", function() {
 			    },
 			    rowC = "",
 			    rowCClick = function(c) {
+				    rowC = c;
 				    ongoing.textContent += ", Row " + c;
 				    title.textContent = "";
 				    clearNode(choices);
