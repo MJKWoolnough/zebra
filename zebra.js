@@ -138,14 +138,95 @@ window.addEventListener("load", function() {
 		    firstCell = firstRow.appendChild(createElement("td")),
 		    updateCells = cells.forEach.bind(cells, c => c.Update()),
 		    data = {},
+		    adjacentCells = function(cellNum) {
+			var cells = [];
+			if (cellNum > 0) {
+				cells.push(cellNum - 1);
+			}
+			if (cellNum < numRows - 1) {
+				cells.push(cellNum + 1);
+			}
+			return cells;
+		    },
 		    adjacentTo = function(catA, catB, rowB, catC, rowC) {
-			return true;
+			var unchanged = true,
+			    dataB = data[catB][rowB][catA],
+			    dataC = data[catC][rowC][catA];
+			Object.keys(dataB).every(function(val, num) {
+				if (dataB[val].Get() === 0 && adjacentCells(num).every(c => dataC[Object.keys(dataC)[c]].Get() === -1)) {
+					dataB[val].Set(-1);
+					unchanged = false;
+				}
+				return true;
+			});
+			Object.keys(dataC).every(function(val, num) {
+				if (dataC[val].Get() === 0 && adjacentCells(num).every(c => dataB[Object.keys(dataB)[c]].Get() === -1)) {
+					dataC[val].Set(-1);
+					unchanged = false;
+				}
+				return true;
+			});
+			return unchanged;
 		    },
 		    leftOf = function(catA, catB, rowB, catC, rowC) {
-			return true;
+			var unchanged = true,
+			    dataB = data[catB][rowB][catA],
+			    dataC = data[catC][rowC][catA];
+			[dataB[Object.keys(dataB)[numRows-1]], dataC[Object.keys(dataC)[0]]].filter(cell => cell.Get() == 0).forEach(function(cell) {
+				cell.Set(-1);
+				unchanged = false;
+			});
+			Object.keys(dataC).slice(1).every(function(val, num) {
+				var other = dataB[Object.keys(dataB)[num]];
+				switch (dataC[val].Get()) {
+				case -1:
+					if (other.Get() !== -1) {
+						other.Set(-1);
+						unchanged = false;
+					}
+					break;
+				case 0:
+					break;
+				case 1:
+					if (other.Get() !== 1) {
+						other.Set(1);
+						unchanged = false;
+						return false;
+					}
+				}
+				return true;
+			});
+			Object.keys(dataB).slice(0, -1).every(function(val, num) {
+				var other = dataC[Object.keys(dataC)[num+1]];
+				switch (dataB[val].Get()) {
+				case -1:
+					if (other.Get() !== -1) {
+						other.Set(-1);
+						unchanged = false;
+					}
+					break;
+				case 0:
+					break;
+				case 1:
+					if (other.Get() !== 1) {
+						other.Set(1);
+						unchanged = false;
+						return false;
+					}
+				}
+				return true;
+			});
+			return unchanged;
 		    },
 		    before = function(catA, catB, rowB, catC, rowC) {
-			return true;
+			var unchanged = true,
+			    dataB = data[catB][rowB][catA],
+			    dataC = data[catC][rowC][catA];
+			[dataB[Object.keys(dataB)[numRows-1]], dataC[Object.keys(dataC)[0]]].filter(cell => cell.Get() == 0).forEach(function(cell) {
+				cell.Set(-1);
+				unchanged = false;
+			});
+			return unchanged;
 		    };
 		firstCell.setAttribute("colspan", "2");
 		firstCell.setAttribute("rowspan", "2");
@@ -207,6 +288,7 @@ window.addEventListener("load", function() {
 							} else {
 								this.Set(1);
 							}
+							this.Update();
 						}.bind(cell, i));
 						elm.addEventListener("contextmenu", function(e) {
 							e.preventDefault();
@@ -215,6 +297,7 @@ window.addEventListener("load", function() {
 							} else {
 								this.Set(-1);
 							}
+							this.Update();
 						}.bind(cell));
 						if (i == 0) {
 							elm.setAttribute("class", "first");
