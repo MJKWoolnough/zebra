@@ -35,19 +35,17 @@ window.addEventListener("load", function() {
 			this.cats = [];
 			this.vals = [];
 			this.unique = [];
+			this.value = 0;
 		};
 		obj.prototype = {
 			Get: function() {
-				switch (this.cell.getAttribute("class").replace(/^first /, "")) {
-				case "on":
-					return 1;
-				case "off":
-					return -1;
-				}
-				return 0;
+				return this.value;
 			},
 			Set: function(val) {
-				this.cell.setAttribute("class", (this.cell.getAttribute("class").includes("first") ? "first " : "") + (val == 1 ? "on" : (val == -1 ? "off" : "")));
+				this.value = val;
+			},
+			Update: function() {
+				this.cell.setAttribute("class", (this.cell.getAttribute("class").includes("first") ? "first " : "") + (this.value == 1 ? "on" : (this.value == -1 ? "off" : "")));
 			},
 			AddUnique: function(group) {
 				this.unique.push(group);
@@ -81,16 +79,7 @@ window.addEventListener("load", function() {
 			}
 		};
 		return obj;
-	}()),
-	adjacentTo = function() {
-		return true;
-	},
-	leftOf = function() {
-		return true;
-	},
-	before = function() {
-		return true;
-	};
+	}());
 	clearNode(document.body);
 	var categories = [],
 	    addCategory = document.body.appendChild(createElement("button")),
@@ -147,7 +136,17 @@ window.addEventListener("load", function() {
 		    rules = [],
 		    cells = [],
 		    firstCell = firstRow.appendChild(createElement("td")),
-		    data = {};
+		    updateCells = cells.forEach.bind(cells, c => c.Update()),
+		    data = {},
+		    adjacentTo = function(catA, catB, rowB, catC, rowC) {
+			return true;
+		    },
+		    leftOf = function(catA, catB, rowB, catC, rowC) {
+			return true;
+		    },
+		    before = function(catA, catB, rowB, catC, rowC) {
+			return true;
+		    };
 		firstCell.setAttribute("colspan", "2");
 		firstCell.setAttribute("rowspan", "2");
 		categories.forEach(function(cat) {
@@ -240,7 +239,7 @@ window.addEventListener("load", function() {
 		}.bind(data);
 		Object.values(data).forEach(a => Object.values(a).forEach(b => Object.values(b).forEach(c => Object.keys(c).forEach(d => c[d].AddUnique(Object.keys(c).filter(e => e != d).map(f => c[f]))))));
 		solver.textContent = "Solve";
-		solver.addEventListener("click", function() {while(!this()||!rules.every(r => r())){}}.bind(cells.every.bind(cells, cell => cell.Solve(data))));
+		solver.addEventListener("click", function() {while(!this()||!rules.every(r => r())){}updateCells();}.bind(cells.every.bind(cells, cell => cell.Solve(data))));
 		addRule.textContent = "Add Rule";
 		addRule.addEventListener("click", (function() {
 			var overlay = createElement("div"),
@@ -356,6 +355,7 @@ window.addEventListener("load", function() {
 				document.body.appendChild(overlay);
 			};
 		}()));
+		updateCells();
 		document.body.appendChild(table);
 		document.body.appendChild(solver);
 		document.body.appendChild(addRule);
