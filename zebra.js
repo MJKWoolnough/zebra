@@ -237,13 +237,13 @@ window.addEventListener("load", function() {
 				categories.filter(mcat => mcat != cat).forEach(function(mcat) {
 					var values = {};
 					mcat.Values.forEach(function(val) {
-						values[val.toUpperCase()] = null;
+						values[val] = null;
 					});
-					mdata[mcat.Title.toUpperCase()] = values;
+					mdata[mcat.Title] = values;
 				});
-				crosses[val.toUpperCase()] = mdata;
+				crosses[val] = mdata;
 			});
-			data[cat.Title.toUpperCase()] = crosses;
+			data[cat.Title] = crosses;
 		});
 
 		categories.slice(1).forEach(function(cat) {
@@ -259,10 +259,10 @@ window.addEventListener("load", function() {
 			});
 		});
 		categories.slice(2).concat(categories[0]).reverse().forEach(function(cat, pos) {
-			var rowCatTitle = cat.Title.toUpperCase();
+			var rowCatTitle = cat.Title;
 			cat.Values.forEach(function(title, cpos) {
 				var row = tbody.appendChild(createElement("tr")),
-				    rowTitle = title.toUpperCase();
+				    rowTitle = title;
 				if (cpos == 0) {
 					var catTitle = row.appendChild(createElement("th"));
 					catTitle.appendChild(createElement("div")).textContent = cat.Title;
@@ -276,11 +276,11 @@ window.addEventListener("load", function() {
 					cell.setAttribute("class", "first");
 				}
 				categories.slice(1, categories.length - pos).forEach(function(mcat) {
-					var columnCatTitle = mcat.Title.toUpperCase();
+					var columnCatTitle = mcat.Title;
 					mcat.Values.forEach(function(val, i) {
 						var elm = row.appendChild(createElement("td")),
 						    cell = new Cell(elm),
-						    columnTitle = val.toUpperCase();
+						    columnTitle = val;
 						cells.push(cell);
 						elm.addEventListener("click", function() {
 							if (this.Get() == 1) {
@@ -317,8 +317,10 @@ window.addEventListener("load", function() {
 				}
 			});
 		});
-		window.Set = function(cat1, title1, cat2, title2, onoff) {
-			this[cat1.toUpperCase()][title1.toUpperCase()][cat2.toUpperCase()][title2.toUpperCase()].Set(onoff);
+		window.set = function(cat1, title1, cat2, title2, onoff) {
+			var cell = this[cat1][title1][cat2][title2];
+			cell.Set(onoff);
+			cell.Update();
 		}.bind(data);
 		Object.values(data).forEach(a => Object.values(a).forEach(b => Object.values(b).forEach(c => Object.keys(c).forEach(d => c[d].AddUnique(Object.keys(c).filter(e => e != d).map(f => c[f]))))));
 		solver.textContent = "Solve";
@@ -401,7 +403,7 @@ window.addEventListener("load", function() {
 			    rowC = "",
 			    rowCClick = function(c) {
 				    rowC = c;
-				    ongoing.textContent += ", Row " + c;
+				    ongoing.textContent += ", Row " + c + ".";
 				    title.textContent = "";
 				    clearNode(choices);
 				    var butt = choices.appendChild(createElement("button"));
