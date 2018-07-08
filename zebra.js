@@ -306,6 +306,7 @@ window.addEventListener("load", function() {
 						}
 						cell.cats = Array(rowCatTitle, columnCatTitle);
 						cell.vals = Array(rowTitle, columnTitle);
+						elm.setAttribute("id", (rowCatTitle + ":" + rowTitle + "|" + columnCatTitle + ":" + columnTitle).toUpperCase().replace(/ /, "_"));
 						data[rowCatTitle][rowTitle][columnCatTitle][columnTitle] = cell;
 						data[columnCatTitle][columnTitle][rowCatTitle][rowTitle] = cell;
 					});
@@ -317,11 +318,6 @@ window.addEventListener("load", function() {
 				}
 			});
 		});
-		window.set = function(cat1, title1, cat2, title2, onoff) {
-			var cell = this[cat1][title1][cat2][title2];
-			cell.Set(onoff);
-			cell.Update();
-		}.bind(data);
 		Object.values(data).forEach(a => Object.values(a).forEach(b => Object.values(b).forEach(c => Object.keys(c).forEach(d => c[d].AddUnique(Object.keys(c).filter(e => e != d).map(f => c[f]))))));
 		solver.textContent = "Solve";
 		solver.addEventListener("click", function() {while(!this()||!rules.every(r => r())){}updateCells();}.bind(cells.every.bind(cells, cell => cell.Solve(data))));
