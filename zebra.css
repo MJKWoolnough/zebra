@@ -70,3 +70,29 @@ tbody tr:last-child th {
 .off {
 	background-color: #f00;
 }
+
+#overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(127, 127, 127, 0.5);
+}
+
+#overlay > div {
+	position: absolute;
+	top: 10%;
+	left: 10%;
+	right: 10%;
+	overflow: hidden;
+	background-color: #fff;
+	padding-top: 1em;
+}
+
+#overlay > div > button:first-child {
+	position: absolute;
+	right: 0;
+	top: 0;
+	padding: 0;
+}
