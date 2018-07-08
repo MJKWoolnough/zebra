@@ -82,52 +82,58 @@ window.addEventListener("load", function() {
 		};
 		return obj;
 	}()),
-	init = function() {
-		clearNode(document.body);
-		var categories = [],
-		    addCategory = document.body.appendChild(createElement("button")),
-		    addRow = document.body.appendChild(createElement("button")),
-		    addRowCell = function(parent, catNum) {
-			var i = categories[catNum].Values.length,
-			    input = parent.appendChild(createElement("li")).appendChild(createElement("input"));
-			categories[catNum].SetValue(i, "");
-			input.addEventListener("blur", function() {
-				categories[catNum].SetValue(i, input.value);
-			});
-		    },
-		    done = document.body.appendChild(createElement("button")),
-		    info = createElement("div"),
-		    numRows = 2;
-		document.body.appendChild(createElement("br"));
-		document.body.appendChild(info);
-		addCategory.innerHTML = "Add Category";
-		addRow.innerHTML = "Add Row";
-		info.setAttribute("id", "info");
-		done.innerHTML = "Start";
-		addCategory.addEventListener("click", function() {
-			var catNum = categories.length,
-			    set = createElement("div"),
-			    title = set.appendChild(createElement("input")),
-			    values = set.appendChild(createElement("ol"));
-			categories[catNum] = new Category(values);
-			title.addEventListener("blur", function() {
-				categories[catNum].SetTitle(this.value);
-			});
-			for (var i = 0; i < numRows; i++) {
-				addRowCell(values, catNum);
-			}
-			info.appendChild(set);
-		});
-		addRow.addEventListener("click", function() {
-			numRows++;
-			Array.prototype.slice.apply(document.body.getElementsByTagName("ol")).forEach(addRowCell);
-		});
-		addCategory.click();
-		addCategory.click();
-		addCategory.click();
-		done.addEventListener("click", grid.bind(null, categories));
+	adjacentTo = function() {
+		return true;
 	},
-	grid = function(categories) {
+	leftOf = function() {
+		return true;
+	},
+	before = function() {
+		return true;
+	};
+	clearNode(document.body);
+	var categories = [],
+	    addCategory = document.body.appendChild(createElement("button")),
+	    addRow = document.body.appendChild(createElement("button")),
+	    addRowCell = function(parent, catNum) {
+		var i = categories[catNum].Values.length,
+		    input = parent.appendChild(createElement("li")).appendChild(createElement("input"));
+		categories[catNum].SetValue(i, "");
+		input.addEventListener("blur", function() {
+			categories[catNum].SetValue(i, input.value);
+		});
+	    },
+	    done = document.body.appendChild(createElement("button")),
+	    info = createElement("div"),
+	    numRows = 2;
+	document.body.appendChild(createElement("br"));
+	document.body.appendChild(info);
+	addCategory.innerHTML = "Add Category";
+	addRow.innerHTML = "Add Row";
+	info.setAttribute("id", "info");
+	done.innerHTML = "Start";
+	addCategory.addEventListener("click", function() {
+		var catNum = categories.length,
+		    set = createElement("div"),
+		    title = set.appendChild(createElement("input")),
+		    values = set.appendChild(createElement("ol"));
+		categories[catNum] = new Category(values);
+		title.addEventListener("blur", function() {
+			categories[catNum].SetTitle(this.value);
+		});
+		for (var i = 0; i < numRows; i++) {
+			addRowCell(values, catNum);
+		}
+		info.appendChild(set);
+	});
+	addRow.addEventListener("click", function() {
+		numRows++;
+		Array.prototype.slice.apply(document.body.getElementsByTagName("ol")).forEach(addRowCell);
+	});
+	addCategory.click();
+	addCategory.click();
+	addCategory.click();
+	done.addEventListener("click", function() {
 		clearNode(document.body);
 		var numRows = categories[0].Values.length,
 		    table = createElement("table"),
@@ -280,11 +286,11 @@ window.addEventListener("load", function() {
 				});
 			    },
 			    modes = {
-				"Adjacent To": function() {return true;},
-				"Left/Up Of": function() {return true;},
-				"Right/Down Of": function() {return true;},
-				"Before": function() {return true;},
-				"After": function() {return true;},
+				"Adjacent To": adjacentTo,
+				"Left/Up Of": leftOf,
+				"Right/Down Of": function(catA, catB, rowB, catC, rowC) {return leftOf(catA, catC, rowC, catB, rowB);},
+				"Before": before,
+				"After": function(catA, catB, rowB, catC, rowC) {return before(catA, catC, rowC, catB, rowB);},
 			    },
 			    mode = function(){},
 			    modeClick = function(c) {
@@ -354,6 +360,5 @@ window.addEventListener("load", function() {
 		document.body.appendChild(solver);
 		document.body.appendChild(addRule);
 		document.body.appendChild(rulesList);
-	};
-	init();
+	});
 });
