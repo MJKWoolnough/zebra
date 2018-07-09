@@ -70,3 +70,7 @@ function addRule(catA, catB, rowB, method, catC, rowC, description) {
 	}
 	return true;
 }
+
+function solve() {
+	document.getElementsByTagName("button")[0].click();
+}
