@@ -1,97 +1,13 @@
 "use strict";
 window.addEventListener("load", function() {
 	var createElement = document.createElementNS.bind(document, document.getElementsByTagName("html")[0].namespaceURI),
-	clearNode = function(node) {
+	    clearNode = function(node) {
 		while (node.hasChildNodes()) {
 			node.removeChild(node.lastChild);
 		}
-	},
-	Category = (function() {
-		var obj = function(parent) {
-			this.parent = parent;
-			this.Title = "";
-			this.Values = [];
-		};
-		obj.prototype = {
-			SetTitle: function(title) {
-				this.Title = title;
-			},
-			SetValue: function(num, value) {
-				this.Values[num] = value;
-			},
-			AddRow: function() {
-				this.SetValue(this.Values.length, "");
-				var input = this.parent.appendChild(createElement("li")).appendChild(createElement("input"));
-				input.addEventListener("blur", (function(row) {
-					categories[catNum].SetValue(row, this.value);
-				}).bind(input, i));
-			}
-		};
-		return obj;
-	}()),
-	Cell = (function() {
-		var obj = function(cell) {
-			this.cell = cell;
-			this.cats = [];
-			this.vals = [];
-			this.unique = [];
-			this.value = 0;
-		};
-		obj.prototype = {
-			Get: function() {
-				return this.value;
-			},
-			Set: function(val) {
-				this.value = val;
-			},
-			Update: function() {
-				this.cell.setAttribute("class", (this.cell.getAttribute("class").includes("first") ? "first " : "") + (this.value == 1 ? "on" : (this.value == -1 ? "off" : "")));
-			},
-			AddUnique: function(group) {
-				this.unique.push(group);
-			},
-			Solve: function(data) {
-				var unchanged = true,
-				    self = this;
-				if (this.Get() === 0) {
-					if (this.unique.some(u => u.every(cell => cell.Get() == -1))) {
-						this.Set(1);
-						unchanged = false;
-					} else if (this.unique.some(u => u.filter(cell => cell.Get() == 1).length == 1)) {
-						this.Set(-1);
-						unchanged = false;
-					}
-				}
-				if (this.Get() === 1) {
-					Object.keys(data[this.cats[0]][this.vals[0]]).filter(k => k !== this.cats[1]).forEach(k => Object.keys(data[this.cats[0]][this.vals[0]][k]).forEach(function(j) {
-						var valA = data[self.cats[0]][self.vals[0]][k][j],
-						    valB = data[self.cats[1]][self.vals[1]][k][j];
-						if (valA.Get() !== 0 && valB.Get() == 0) {
-							valB.Set(valA.Get());
-							unchanged = false;
-						} else if (valB.Get() !== 0 && valA.Get() == 0) {
-							valA.Set(valB.Get());
-							unchanged = false;
-						}
-					}));
-				}
-				return unchanged;
-			}
-		};
-		return obj;
-	}());
-	clearNode(document.body);
-	var categories = [],
+	    },
 	    addCategory = document.body.appendChild(createElement("button")),
 	    addRow = document.body.appendChild(createElement("button")),
-	    addRowCell = function(parent, catNum) {
-		var i = categories[catNum].Values.length,
-		    input = parent.appendChild(createElement("li")).appendChild(createElement("input"));
-		categories[catNum].SetValue(i, "");
-		input.addEventListener("blur", function() {
-			categories[catNum].SetValue(i, input.value);
-		});
-	    },
 	    done = document.body.appendChild(createElement("button")),
 	    info = createElement("div"),
 	    numRows = 2;
@@ -102,29 +18,26 @@ window.addEventListener("load", function() {
 	info.setAttribute("id", "info");
 	done.innerHTML = "Start";
 	addCategory.addEventListener("click", function() {
-		var catNum = categories.length,
-		    set = createElement("div"),
-		    title = set.appendChild(createElement("input")),
+		var set = createElement("div"),
 		    values = set.appendChild(createElement("ol"));
-		categories[catNum] = new Category(values);
-		title.addEventListener("blur", function() {
-			categories[catNum].SetTitle(this.value);
-		});
+		set.insertBefore(createElement("input"), values);
 		for (var i = 0; i < numRows; i++) {
-			addRowCell(values, catNum);
+			values.appendChild(createElement("li")).appendChild(createElement("input"));
 		}
 		info.appendChild(set);
 	});
 	addRow.addEventListener("click", function() {
 		numRows++;
-		Array.prototype.slice.apply(document.body.getElementsByTagName("ol")).forEach(addRowCell);
+		Array.prototype.slice.apply(document.body.getElementsByTagName("ol")).forEach(ol => ol.appendChild(createElement("li")).appendChild(createElement("input")));
 	});
 	addCategory.click();
 	addCategory.click();
 	addCategory.click();
 	done.addEventListener("click", function() {
-		clearNode(document.body);
-		var numRows = categories[0].Values.length,
+		var categories = Array.prototype.slice.apply(info.getElementsByTagName("div")).map(function(cat) {
+			var inputs = Array.prototype.slice.apply(cat.getElementsByTagName("input"));
+			return {"Title": inputs[0].value, "Values": inputs.slice(1).map(input => input.value)};
+		    }),
 		    table = createElement("table"),
 		    thead = table.appendChild(createElement("thead")),
 		    firstRow = thead.appendChild(createElement("tr")),
@@ -138,6 +51,57 @@ window.addEventListener("load", function() {
 		    firstCell = firstRow.appendChild(createElement("td")),
 		    updateCells = cells.forEach.bind(cells, c => c.Update()),
 		    data = {},
+		    Cell = (function() {
+			var obj = function(cell) {
+				this.cell = cell;
+				this.cats = [];
+				this.vals = [];
+				this.unique = [];
+				this.value = 0;
+			};
+			obj.prototype = {
+				Get: function() {
+					return this.value;
+				},
+				Set: function(val) {
+					this.value = val;
+				},
+				Update: function() {
+					this.cell.setAttribute("class", (this.cell.getAttribute("class").includes("first") ? "first " : "") + (this.value == 1 ? "on" : (this.value == -1 ? "off" : "")));
+				},
+				AddUnique: function(group) {
+					this.unique.push(group);
+				},
+				Solve: function(data) {
+					var unchanged = true,
+					    self = this;
+					if (this.Get() === 0) {
+						if (this.unique.some(u => u.every(cell => cell.Get() == -1))) {
+							this.Set(1);
+							unchanged = false;
+						} else if (this.unique.some(u => u.filter(cell => cell.Get() == 1).length == 1)) {
+							this.Set(-1);
+							unchanged = false;
+						}
+					}
+					if (this.Get() === 1) {
+						Object.keys(data[this.cats[0]][this.vals[0]]).filter(k => k !== this.cats[1]).forEach(k => Object.keys(data[this.cats[0]][this.vals[0]][k]).forEach(function(j) {
+							var valA = data[self.cats[0]][self.vals[0]][k][j],
+							    valB = data[self.cats[1]][self.vals[1]][k][j];
+							if (valA.Get() !== 0 && valB.Get() == 0) {
+								valB.Set(valA.Get());
+								unchanged = false;
+							} else if (valB.Get() !== 0 && valA.Get() == 0) {
+								valA.Set(valB.Get());
+								unchanged = false;
+							}
+						}));
+					}
+					return unchanged;
+				}
+			};
+			return obj;
+		    }()),
 		    adjacentCells = function(cellNum) {
 			var cells = [];
 			if (cellNum > 0) {
@@ -228,6 +192,7 @@ window.addEventListener("load", function() {
 			});
 			return unchanged;
 		    };
+		clearNode(document.body);
 		firstCell.setAttribute("colspan", "2");
 		firstCell.setAttribute("rowspan", "2");
 		categories.forEach(function(cat) {
