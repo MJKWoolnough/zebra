@@ -186,9 +186,19 @@ window.addEventListener("load", function() {
 			var unchanged = true,
 			    dataB = data[catB][rowB][catA],
 			    dataC = data[catC][rowC][catA];
-			[dataB[Object.keys(dataB)[numRows-1]], dataC[Object.keys(dataC)[0]]].filter(cell => cell.Get() == 0).forEach(function(cell) {
-				cell.Set(-1);
-				unchanged = false;
+			Object.keys(dataB).every(function(k) {
+				if (dataC[k].Get() == 0) {
+					dataC[k].Set(0);
+					unchanged = false;
+				}
+				return dataB[k].Get() === 0;
+			});
+			Object.keys(dataB).reverse().every(function(k) {
+				if (dataB[k].Get() == 0) {
+					dataB[k].Set(0);
+					unchanged = false;
+				}
+				return dataB[k].Get() === 0;
 			});
 			return unchanged;
 		    };
