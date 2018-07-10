@@ -201,7 +201,50 @@ window.addEventListener("load", function() {
 				return dataC[k].Get() === 0;
 			});
 			return unchanged;
-		    };
+		    },
+		    blankPivot = (function() {
+			var cats = categories.map(cat => cat.Title),
+			    rows = cats.reduce((rows, cat, i) => {rows[cat] = categories[i].Values; return rows;}, {}),
+			    mask = function(catA, catB, rowB) {
+				return rows[catA].map(rowA => data[catB][rowB][catA][rowA].Get() === 0 ? 1 : 0).reduce((mask, val, i) => mask |= val << i);
+			    };
+			return function() {
+				return cats.every(
+					catA => cats.filter(
+						catB => catB != catA
+					).every(
+						catB => Object.keys(data[catB]).every(
+							rowB => {
+								var mMask = mask(catA, catB, rowB);
+								if (mMask > 0) {
+									return categories.map(
+										cat => cat.Title
+									).filter(
+										cat => cat !== catA && cat !== catB
+									).every(
+										catC => Object.keys(data[catC]).filter(
+											rowC => {
+												var m = mask(catA, catC, rowC)
+												return m > 0 && (m & mMask) === 0;
+											}
+										).every(
+											rowC => {
+												if (data[catB][rowB][catC][rowC].Get() === 0) {
+													data[catB][rowB][catC][rowC].Set(-1);
+													return false;
+												}
+												return true;
+											}
+										)
+									)
+								}
+								return true;
+							}
+						)
+					)
+				);
+			};
+		    }());
 		clearNode(document.body);
 		firstCell.setAttribute("colspan", "2");
 		firstCell.setAttribute("rowspan", "2");
@@ -295,7 +338,7 @@ window.addEventListener("load", function() {
 		});
 		Object.values(data).forEach(a => Object.values(a).forEach(b => Object.values(b).forEach(c => Object.keys(c).forEach(d => c[d].AddUnique(Object.keys(c).filter(e => e != d).map(f => c[f]))))));
 		solver.textContent = "Solve";
-		solver.addEventListener("click", function() {while(!this()||!rules.every(r => r())){}updateCells();}.bind(cells.every.bind(cells, cell => cell.Solve(data))));
+		solver.addEventListener("click", function() {while(!this()||!rules.every(r => r()) || !blankPivot()){};updateCells();}.bind(cells.every.bind(cells, cell => cell.Solve(data))));
 		addRule.textContent = "Add Rule";
 		addRule.addEventListener("click", (function() {
 			var overlay = createElement("div"),
