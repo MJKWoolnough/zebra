@@ -193,12 +193,12 @@ window.addEventListener("load", function() {
 				}
 				return dataB[k].Get() === 0;
 			});
-			Object.keys(dataB).reverse().every(function(k) {
+			Object.keys(dataC).reverse().every(function(k) {
 				if (dataB[k].Get() == 0) {
 					dataB[k].Set(0);
 					unchanged = false;
 				}
-				return dataB[k].Get() === 0;
+				return dataC[k].Get() === 0;
 			});
 			return unchanged;
 		    };
