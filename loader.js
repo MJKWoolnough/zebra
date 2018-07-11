@@ -4,11 +4,20 @@ function setData(data) {
 	if (!Object.keys(data).slice(1).every(key => data[key].length == data[firstKey].length)) {
 		return;
 	}
-	var butts = Array.prototype.slice.call(document.getElementsByTagName("button"));
-	for (var i = 3; i < Object.keys(data).length; i++) {
+	var butts = document.getElementsByTagName("button"),
+	    cats = document.getElementById("info"),
+	    rows;
+	while (cats.childElementCount > Object.keys(data).length) {
+		butts[butts.length-1].click();
+	}
+	while (cats.childElementCount < Object.keys(data).length) {
 		butts[0].click();
 	}
-	for (var j = 2; j < data[firstKey].length; j++ ){
+	rows = cats.firstChild.getElementsByTagName("li");
+	while (rows.length > data[firstKey].length) {
+		butts[2].click();
+	}
+	while (rows.length < data[firstKey].length) {
 		butts[1].click();
 	}
 	Object.keys(data).forEach(function(key, pos) {
