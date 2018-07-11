@@ -260,7 +260,8 @@ window.addEventListener("load", function() {
 					)
 				);
 			};
-		    }());
+		    }()),
+		    re = /[ :|]/g;
 		if (
 			!categories.map(cat => cat.Title.replace(/[ |:]/, "_").toUpperCase()).map((cat, i, arr) => {
 				if (arr.indexOf(cat) !== i) {
@@ -358,7 +359,7 @@ window.addEventListener("load", function() {
 						}
 						cell.cats = Array(rowCatTitle, columnCatTitle);
 						cell.vals = Array(rowTitle, columnTitle);
-						elm.setAttribute("id", (rowCatTitle.replace(/[:|]/, "_") + ":" + rowTitle.replace(/[:|]/, "_") + "|" + columnCatTitle.replace(/[:|]/, "_") + ":" + columnTitle.replace(/[:|]/, "_")).toUpperCase().replace(/ /, "_"));
+						elm.setAttribute("id", (rowCatTitle.replace(re, "_") + ":" + rowTitle.replace(re, "_") + "|" + columnCatTitle.replace(re, "_") + ":" + columnTitle.replace(re, "_")).toUpperCase());
 						data[rowCatTitle][rowTitle][columnCatTitle][columnTitle] = cell;
 						data[columnCatTitle][columnTitle][rowCatTitle][rowTitle] = cell;
 					});
