@@ -25,9 +25,7 @@ function setData(data) {
 }
 
 function setCell(catA, rowA, catB, rowB, val, description) {
-	var cellA = document.getElementById((catA + ":" + rowA + "|" + catB + ":" + rowB).toUpperCase().replace(/ /, "_")),
-	    cellB = document.getElementById((catB + ":" + rowB + "|" + catA + ":" + rowA).toUpperCase().replace(/ /, "_")),
-	    cell = cellA || cellB;
+	var cell = document.getElementById((catA.replace(/[|:]/, "_") + ":" + rowA.replace(/[|:]/, "_") + "|" + catB.replace(/[|:]/, "_") + ":" + rowB.replace(/[|:]/, "_")).toUpperCase().replace(/ /, "_")) || document.getElementById((catB.replace(/[|:]/, "_") + ":" + rowB.replace(/[|:]/, "_") + "|" + catA.replace(/[|:]/, "_") + ":" + rowA.replace(/[|:]/, "_")).toUpperCase().replace(/ /, "_"));
 	if (typeof cell === "undefined") {
 		return;
 	}
