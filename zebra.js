@@ -19,23 +19,25 @@ window.addEventListener("load", function() {
 	done.innerHTML = "Start";
 	addCategory.addEventListener("click", function() {
 		var set = createElement("div"),
-		    values = set.appendChild(createElement("ol"));
-		set.insertBefore(createElement("input"), values);
+		    values = set.appendChild(createElement("ol")),
+		    title = set.insertBefore(createElement("input"), values);
+		title.addEventListener("focus", title.removeAttribute.bind(title, "class"));
 		for (var i = 0; i < numRows; i++) {
-			values.appendChild(createElement("li")).appendChild(createElement("input"));
+			var input = values.appendChild(createElement("li")).appendChild(createElement("input"));
+			input.addEventListener("focus", input.removeAttribute.bind(input, "class"));
 		}
 		info.appendChild(set);
 	});
 	addRow.addEventListener("click", function() {
 		numRows++;
-		Array.prototype.slice.apply(document.body.getElementsByTagName("ol")).forEach(ol => ol.appendChild(createElement("li")).appendChild(createElement("input")));
+		Array.from(document.body.getElementsByTagName("ol")).map(ol => ol.appendChild(createElement("li")).appendChild(createElement("input"))).forEach(input => input.addEventListener("focus", input.removeAttribute.bind(input, "class")));
 	});
 	addCategory.click();
 	addCategory.click();
 	addCategory.click();
 	done.addEventListener("click", function() {
-		var categories = Array.prototype.slice.apply(info.getElementsByTagName("div")).map(function(cat) {
-			var inputs = Array.prototype.slice.apply(cat.getElementsByTagName("input"));
+		var categories = Array.from(info.getElementsByTagName("div")).map(function(cat) {
+			var inputs = Array.from(cat.getElementsByTagName("input"));
 			return {"Title": inputs[0].value, "Values": inputs.slice(1).map(input => input.value)};
 		    }),
 		    table = createElement("table"),
@@ -245,6 +247,24 @@ window.addEventListener("load", function() {
 				);
 			};
 		    }());
+		if (
+			!categories.map(cat => cat.Title.replace(/ /, "_")).map((cat, i, arr) => {
+				if (arr.indexOf(cat) !== i) {
+					info.getElementsByTagName("div")[i].getElementsByTagName("input")[0].setAttribute("class", "error");
+					return false;
+				}
+				return true;
+			}).reduce((acc, val) => acc ? val : acc) ||
+			!categories.map((cat, i) => cat.Values.map(row => row.replace(/ /, "_")).map((row, j, arr) => {
+				if (arr.indexOf(row) !== j) {
+					info.getElementsByTagName("div")[i].getElementsByTagName("input")[j+1].setAttribute("class", "error");
+					return false;
+				}
+				return true;
+			}).reduce((acc, val) => acc ? val : acc)).reduce((acc, val) => acc ? val : acc)
+		) {
+			return;
+		}
 		clearNode(document.body);
 		firstCell.setAttribute("colspan", "2");
 		firstCell.setAttribute("rowspan", "2");
