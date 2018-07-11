@@ -39,8 +39,10 @@ window.addEventListener("load", function() {
 		Array.from(info.getElementsByTagName("ol")).map(ol => ol.appendChild(createElement("li")).appendChild(createElement("input"))).forEach(input => input.addEventListener("focus", input.removeAttribute.bind(input, "class")));
 	});
 	removeRow.addEventListener("click", function() {
-		numRows--;
-		Array.from(info.getElementsByTagName("ol")).forEach(ol => ol.hasChildNodes() && ol.removeChild(ol.lastChild));
+		if (numRows > 0) {
+			numRows--;
+			Array.from(info.getElementsByTagName("ol")).forEach(ol => ol.hasChildNodes() && ol.removeChild(ol.lastChild));
+		}
 	});
 	addCategory.click();
 	addCategory.click();
