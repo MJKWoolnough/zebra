@@ -20,7 +20,7 @@ function setData(data) {
 			input.blur();
 		});
 	});
-	butts[2].click();
+	butts[3].click();
 	setData = function(){};
 }
 
