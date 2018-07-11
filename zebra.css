@@ -7,6 +7,11 @@
 	border : 1px solid #000;
 	border-collapse: collapse;
 	display: table-cell;
+	position: relative;
+}
+
+#info input.error {
+	background-color: #f00;
 }
 
 table {
@@ -90,7 +95,7 @@ tbody tr:last-child th {
 	padding-top: 1em;
 }
 
-#overlay > div > button:first-child {
+.closer {
 	position: absolute;
 	right: 0;
 	top: 0;
