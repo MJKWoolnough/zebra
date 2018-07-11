@@ -8,19 +8,25 @@ window.addEventListener("load", function() {
 	    },
 	    addCategory = document.body.appendChild(createElement("button")),
 	    addRow = document.body.appendChild(createElement("button")),
+	    removeRow = document.body.appendChild(createElement("button")),
 	    done = document.body.appendChild(createElement("button")),
 	    info = createElement("div"),
 	    numRows = 2;
 	document.body.appendChild(createElement("br"));
 	document.body.appendChild(info);
-	addCategory.innerHTML = "Add Category";
-	addRow.innerHTML = "Add Row";
+	addCategory.textContent = "Add Category";
+	addRow.textContent = "Add Row";
+	removeRow.textContent = "Remove Row";
 	info.setAttribute("id", "info");
-	done.innerHTML = "Start";
+	done.textContent = "Start";
 	addCategory.addEventListener("click", function() {
 		var set = createElement("div"),
+		    close = set.appendChild(createElement("button")),
 		    values = set.appendChild(createElement("ol")),
 		    title = set.insertBefore(createElement("input"), values);
+		close.textContent = "X";
+		close.setAttribute("class", "closer")
+		close.addEventListener("click", info.removeChild.bind(info, set));
 		title.addEventListener("focus", title.removeAttribute.bind(title, "class"));
 		for (var i = 0; i < numRows; i++) {
 			var input = values.appendChild(createElement("li")).appendChild(createElement("input"));
@@ -30,12 +36,20 @@ window.addEventListener("load", function() {
 	});
 	addRow.addEventListener("click", function() {
 		numRows++;
-		Array.from(document.body.getElementsByTagName("ol")).map(ol => ol.appendChild(createElement("li")).appendChild(createElement("input"))).forEach(input => input.addEventListener("focus", input.removeAttribute.bind(input, "class")));
+		Array.from(info.getElementsByTagName("ol")).map(ol => ol.appendChild(createElement("li")).appendChild(createElement("input"))).forEach(input => input.addEventListener("focus", input.removeAttribute.bind(input, "class")));
+	});
+	removeRow.addEventListener("click", function() {
+		numRows--;
+		Array.from(info.getElementsByTagName("ol")).forEach(ol => ol.hasChildNodes() && ol.removeChild(ol.lastChild));
 	});
 	addCategory.click();
 	addCategory.click();
 	addCategory.click();
 	done.addEventListener("click", function() {
+		if (info.childElementCount < 3 || numRows < 2) {
+			alert("Need a minimum of 3 categories and 2 rows");
+			return;
+		}
 		var categories = Array.from(info.getElementsByTagName("div")).map(function(cat) {
 			var inputs = Array.from(cat.getElementsByTagName("input"));
 			return {"Title": inputs[0].value, "Values": inputs.slice(1).map(input => input.value)};
@@ -462,6 +476,7 @@ window.addEventListener("load", function() {
 			overlay.setAttribute("id", "overlay");
 			choices.setAttribute("id", "choices");
 			close.addEventListener("click", document.body.removeChild.bind(document.body, overlay));
+			close.setAttribute("class", "closer");
 			close.innerText = "X";
 			return function() {
 				ongoing.textContent = "";
