@@ -248,14 +248,14 @@ window.addEventListener("load", function() {
 			};
 		    }());
 		if (
-			!categories.map(cat => cat.Title.replace(/ /, "_")).map((cat, i, arr) => {
+			!categories.map(cat => cat.Title.replace(/[ |:]/, "_").toUpperCase()).map((cat, i, arr) => {
 				if (arr.indexOf(cat) !== i) {
 					info.getElementsByTagName("div")[i].getElementsByTagName("input")[0].setAttribute("class", "error");
 					return false;
 				}
 				return true;
 			}).reduce((acc, val) => acc ? val : acc) ||
-			!categories.map((cat, i) => cat.Values.map(row => row.replace(/ /, "_")).map((row, j, arr) => {
+			!categories.map((cat, i) => cat.Values.map(row => row.replace(/[ |:]/, "_").toUpperCase()).map((row, j, arr) => {
 				if (arr.indexOf(row) !== j) {
 					info.getElementsByTagName("div")[i].getElementsByTagName("input")[j+1].setAttribute("class", "error");
 					return false;
@@ -344,7 +344,7 @@ window.addEventListener("load", function() {
 						}
 						cell.cats = Array(rowCatTitle, columnCatTitle);
 						cell.vals = Array(rowTitle, columnTitle);
-						elm.setAttribute("id", (rowCatTitle + ":" + rowTitle + "|" + columnCatTitle + ":" + columnTitle).toUpperCase().replace(/ /, "_"));
+						elm.setAttribute("id", (rowCatTitle.replace(/[:|]/, "_") + ":" + rowTitle.replace(/[:|]/, "_") + "|" + columnCatTitle.replace(/[:|]/, "_") + ":" + columnTitle.replace(/[:|]/, "_")).toUpperCase().replace(/ /, "_"));
 						data[rowCatTitle][rowTitle][columnCatTitle][columnTitle] = cell;
 						data[columnCatTitle][columnTitle][rowCatTitle][rowTitle] = cell;
 					});
