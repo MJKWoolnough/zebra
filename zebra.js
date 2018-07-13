@@ -206,14 +206,14 @@ window.addEventListener("load", function() {
 			    dataC = data[catC][rowC][catA];
 			Object.keys(dataB).every(function(k) {
 				if (dataC[k].Get() == 0) {
-					dataC[k].Set(0);
+					dataC[k].Set(-1);
 					unchanged = false;
 				}
 				return dataB[k].Get() === 0;
 			});
 			Object.keys(dataC).reverse().every(function(k) {
 				if (dataB[k].Get() == 0) {
-					dataB[k].Set(0);
+					dataB[k].Set(-1);
 					unchanged = false;
 				}
 				return dataC[k].Get() === 0;
