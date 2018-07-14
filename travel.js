@@ -1,15 +1,25 @@
 // https://www.brainzilla.com/logic/zebra/travel-agency/
 "use strict";
 window.addEventListener("load", function() {
-	setData({
-		"Woman":      ["1", "2", "3", "4", "5"],
-		"Purse":      ["Blue", "Green", "Red", "White", "Yellow"],
-		"Name":       ["Ana", "Glenda", "Jessie", "Lara", "Rose"],
-		"Age":        ["24 years", "26 years", "28 years", "30 years", "32 years"],
-		"Profession": ["Biologist", "Hostess", "Judge", "Nurse", "Singer"],
-		"Country":    ["China", "Egypt", "Italy", "Mexico", "Peru"],
-		"Duration":   ["5 days", "10 days", "15 days", "20 days", "25 days"]
-	});
+	function shuffle(arr) {
+		for (var i = arr.length - 1; i > 0; i--) {
+			var j = Math.floor(Math.random() * (i + 1)),
+			    temp = arr[i];
+			arr[i] = arr[j];
+			arr[j] = temp;
+		}
+		return arr;
+	};
+	setData([["Woman", ["1", "2", "3", "4", "5"]]].concat(
+		shuffle([
+			["Purse", shuffle(["Red", "White", "Green", "Blue", "Yellow"])],
+			["Name", shuffle(["Lara", "Jessis", "Rose", "Ana", "Glenda"])],
+			["Age", shuffle(["30 years", "26 years", "24 years", "28 years", "32 years"])],
+			["Profession", shuffle(["Judge", "Hostess", "Singer", "Nurse", "Biologist"])],
+			["Country", shuffle(["Peru", "China", "Mexico", "Italy", "Egypt"])],
+			["Duration", shuffle(["25 days", "15 days", "20 days", "5 days", "10 days"])]
+		])
+	).reduce((a, b) => {a[b[0]] = b[1];return a}, {}));
 	setCell("Profession", "Singer", "Woman", "3", 1, "The Singer is at the third position.");
 	addRule("Woman", "Duration", "20 days", "After", "Country", "Peru", "The woman traveling for 20 days is somewhere between the woman who is going to Peru and the owner of the Blue purse, in that order.");
 	addRule("Woman", "Duration", "20 days", "Before", "Purse", "Blue", "The woman traveling for 20 days is somewhere between the woman who is going to Peru and the owner of the Blue purse, in that order.");
