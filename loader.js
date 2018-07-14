@@ -36,7 +36,7 @@ function setData(data) {
 function setCell(catA, rowA, catB, rowB, val, description) {
 	var re = /[ :|]/g,
 	    cell = document.getElementById((catA.replace(re, "_") + ":" + rowA.replace(re, "_") + "|" + catB.replace(re, "_") + ":" + rowB.replace(re, "_")).toUpperCase()) || document.getElementById((catB.replace(re, "_") + ":" + rowB.replace(re, "_") + "|" + catA.replace(re, "_") + ":" + rowA.replace(re, "_")).toUpperCase());
-	if (typeof cell === "undefined") {
+	if (cell === null) {
 		return;
 	}
 	switch (val) {
