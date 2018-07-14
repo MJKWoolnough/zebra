@@ -205,18 +205,18 @@ window.addEventListener("load", function() {
 			    dataB = data[catB][rowB][catA],
 			    dataC = data[catC][rowC][catA];
 			Object.keys(dataB).every(function(k) {
-				if (dataC[k].Get() == 0) {
+				if (dataC[k].Get() === 0) {
 					dataC[k].Set(-1);
 					unchanged = false;
 				}
-				return dataB[k].Get() === 0;
+				return dataB[k].Get() === -1;
 			});
 			Object.keys(dataC).reverse().every(function(k) {
-				if (dataB[k].Get() == 0) {
+				if (dataB[k].Get() === 0) {
 					dataB[k].Set(-1);
 					unchanged = false;
 				}
-				return dataC[k].Get() === 0;
+				return dataC[k].Get() === -1;
 			});
 			return unchanged;
 		    },
