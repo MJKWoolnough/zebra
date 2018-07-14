@@ -91,32 +91,47 @@ window.addEventListener("load", function() {
 					this.unique.push(group);
 				},
 				Solve: function(data) {
-					var unchanged = true,
+					var changed = false,
 					    self = this;
 					if (this.Get() === 0) {
-						if (this.unique.some(u => u.every(cell => cell.Get() == -1))) {
+						if (this.unique.some(u => u.every(cell => cell.Get() === -1))) {
 							this.Set(1);
-							unchanged = false;
-						} else if (this.unique.some(u => u.filter(cell => cell.Get() == 1).length == 1)) {
+							changed = true;
+						} else if (this.unique.some(u => u.filter(cell => cell.Get() === 1).length === 1)) {
 							this.Set(-1);
-							unchanged = false;
+							changed = true;
 						}
 					}
 					if (this.Get() === 1) {
 						Object.keys(data[this.cats[0]][this.vals[0]]).filter(k => k !== this.cats[1]).forEach(k => Object.keys(data[this.cats[0]][this.vals[0]][k]).forEach(function(j) {
 							var valA = data[self.cats[0]][self.vals[0]][k][j],
 							    valB = data[self.cats[1]][self.vals[1]][k][j];
-							if (valA.Get() !== 0 && valB.Get() == 0) {
+							if (valA.Get() !== 0 && valB.Get() === 0) {
 								valB.Set(valA.Get());
-								unchanged = false;
-							} else if (valB.Get() !== 0 && valA.Get() == 0) {
+								changed = true;
+							} else if (valB.Get() !== 0 && valA.Get() === 0) {
 								valA.Set(valB.Get());
-								unchanged = false;
+								changed = true;
 							}
 						}));
 					}
-					return unchanged;
-				}
+					return changed;
+				},
+				Sanity: function() {
+					switch (this.Get()) {
+					case -1:
+						if (this.unique.some(u => u.every(cell => cell.Get() === -1))) {
+							return false;
+						}
+						break;
+					case 1:
+						if (this.unique.some(u => u.some(cell => cell.Get() === 1))) {
+							return false;
+						}
+						break;
+					}
+					return true;
+				},
 			};
 			return obj;
 		    }()),
@@ -131,32 +146,32 @@ window.addEventListener("load", function() {
 			return cells;
 		    },
 		    adjacentTo = function(catA, catB, rowB, catC, rowC) {
-			var unchanged = true,
+			var changed = false,
 			    dataB = data[catB][rowB][catA],
 			    dataC = data[catC][rowC][catA];
 			Object.keys(dataB).every(function(val, num) {
 				if (dataB[val].Get() === 0 && adjacentCells(num).every(c => dataC[Object.keys(dataC)[c]].Get() === -1)) {
 					dataB[val].Set(-1);
-					unchanged = false;
+					changed = true;
 				}
 				return true;
 			});
 			Object.keys(dataC).every(function(val, num) {
 				if (dataC[val].Get() === 0 && adjacentCells(num).every(c => dataB[Object.keys(dataB)[c]].Get() === -1)) {
 					dataC[val].Set(-1);
-					unchanged = false;
+					changed = true;
 				}
 				return true;
 			});
-			return unchanged;
+			return changed;
 		    },
 		    leftOf = function(catA, catB, rowB, catC, rowC) {
-			var unchanged = true,
+			var changed = false,
 			    dataB = data[catB][rowB][catA],
 			    dataC = data[catC][rowC][catA];
 			[dataB[Object.keys(dataB)[numRows-1]], dataC[Object.keys(dataC)[0]]].filter(cell => cell.Get() == 0).forEach(function(cell) {
 				cell.Set(-1);
-				unchanged = false;
+				changed = true;
 			});
 			Object.keys(dataC).slice(1).every(function(val, num) {
 				var other = dataB[Object.keys(dataB)[num]];
@@ -164,7 +179,7 @@ window.addEventListener("load", function() {
 				case -1:
 					if (other.Get() !== -1) {
 						other.Set(-1);
-						unchanged = false;
+						changed = true;
 					}
 					break;
 				case 0:
@@ -172,7 +187,7 @@ window.addEventListener("load", function() {
 				case 1:
 					if (other.Get() !== 1) {
 						other.Set(1);
-						unchanged = false;
+						changed = true;
 						return false;
 					}
 				}
@@ -184,7 +199,7 @@ window.addEventListener("load", function() {
 				case -1:
 					if (other.Get() !== -1) {
 						other.Set(-1);
-						unchanged = false;
+						changed = true;
 					}
 					break;
 				case 0:
@@ -192,34 +207,35 @@ window.addEventListener("load", function() {
 				case 1:
 					if (other.Get() !== 1) {
 						other.Set(1);
-						unchanged = false;
+						changed = true;
 						return false;
 					}
 				}
 				return true;
 			});
-			return unchanged;
+			return changed;
 		    },
 		    before = function(catA, catB, rowB, catC, rowC) {
-			var unchanged = true,
+			var changed = false,
 			    dataB = data[catB][rowB][catA],
 			    dataC = data[catC][rowC][catA];
 			Object.keys(dataB).every(function(k) {
 				if (dataC[k].Get() === 0) {
 					dataC[k].Set(-1);
-					unchanged = false;
+					changed = true;
 				}
 				return dataB[k].Get() === -1;
 			});
 			Object.keys(dataC).reverse().every(function(k) {
 				if (dataB[k].Get() === 0) {
 					dataB[k].Set(-1);
-					unchanged = false;
+					changed = true;
 				}
 				return dataC[k].Get() === -1;
 			});
-			return unchanged;
+			return changed;
 		    },
+		    reduceBool = (acc, val) => acc ? acc : val,
 		    blankPivot = (function() {
 			var cats = categories.map(cat => cat.Title),
 			    rows = cats.reduce((rows, cat, i) => {rows[cat] = categories[i].Values; return rows;}, {}),
@@ -227,11 +243,11 @@ window.addEventListener("load", function() {
 				return rows[catA].map(rowA => data[catB][rowB][catA][rowA].Get() === 0 ? 1 : 0).reduce((mask, val, i) => mask |= val << i);
 			    };
 			return function() {
-				return cats.every(
+				return cats.map(
 					catA => cats.filter(
 						catB => catB != catA
-					).every(
-						catB => Object.keys(data[catB]).every(
+					).map(
+						catB => Object.keys(data[catB]).map(
 							rowB => {
 								var mMask = mask(catA, catB, rowB);
 								if (mMask > 0) {
@@ -239,28 +255,28 @@ window.addEventListener("load", function() {
 										cat => cat.Title
 									).filter(
 										cat => cat !== catA && cat !== catB
-									).every(
+									).map(
 										catC => Object.keys(data[catC]).filter(
 											rowC => {
 												var m = mask(catA, catC, rowC)
 												return m > 0 && (m & mMask) === 0;
 											}
-										).every(
+										).map(
 											rowC => {
 												if (data[catB][rowB][catC][rowC].Get() === 0) {
 													data[catB][rowB][catC][rowC].Set(-1);
-													return false;
+													return true;
 												}
-												return true;
+												return false;
 											}
-										)
-									)
+										).reduce(reduceBool, false)
+									).reduce(reduceBool, false)
 								}
-								return true;
+								return false;
 							}
-						)
-					)
-				);
+						).reduce(reduceBool, false)
+					).reduce(reduceBool, false)
+				).reduce(reduceBool, false);
 			};
 		    }()),
 		    re = /[ :|]/g;
@@ -375,7 +391,17 @@ window.addEventListener("load", function() {
 		});
 		Object.values(data).forEach(a => Object.values(a).forEach(b => Object.values(b).forEach(c => Object.keys(c).forEach(d => c[d].AddUnique(Object.keys(c).filter(e => e != d).map(f => c[f]))))));
 		solver.textContent = "Solve";
-		solver.addEventListener("click", function() {while(!this()||!rules.every(r => r()) || !blankPivot()){};updateCells();}.bind(cells.every.bind(cells, cell => cell.Solve(data))));
+		solver.addEventListener("click", function() {
+			if (cells.filter(cell => !cell.Sanity()).length > 0) {
+				alert("Invalid State");
+				return;
+			}
+			while(cells.map(cell => cell.Solve(data)).reduce(reduceBool, false) || rules.map(r => r()).reduce(reduceBool, false) || blankPivot()){}
+			if (cells.filter(cell => !cell.Sanity()).length > 0) {
+				alert("Invalid State");
+			}
+			updateCells();
+		});
 		addRule.textContent = "Add Rule";
 		addRule.addEventListener("click", (function() {
 			var overlay = createElement("div"),
