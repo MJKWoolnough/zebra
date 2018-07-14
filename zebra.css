@@ -32,6 +32,7 @@ th {
 	user-select: none;
 	-moz-user-select: none;
 	-webkit-user-select: none;
+	white-space: nowrap;
 }
 
 thead tr:last-child th > div, tbody tr th.cat > div {
