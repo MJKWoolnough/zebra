@@ -34,6 +34,10 @@ window.addEventListener("load", function() {
 		]).forEach(n => addRule(n[0], n[1], data["names"][n[1]][n[2]], n[3], n[4], data["names"][n[4]][n[5]]));
 	});
 	done.addEventListener("click", function() {
+		console.log(info.parentNode);
+		if (info.parentNode !== null) {
+			return;
+		}
 		var button = document.body.insertBefore(createElement("button"), document.getElementsByTagName("table")[1]),
 		    names = Array.from(info.getElementsByTagName("div")).reduce(function(data, cat) {
 			var inputs = Array.from(cat.getElementsByTagName("input"));
