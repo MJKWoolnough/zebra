@@ -2,6 +2,7 @@
 function setData(data) {
 	var firstKey = Object.keys(data)[0];
 	if (!Object.keys(data).slice(1).every(key => data[key].length == data[firstKey].length)) {
+		console.log("All categories must be of the same length");
 		return;
 	}
 	var butts = document.getElementsByTagName("button"),
@@ -37,6 +38,7 @@ function setCell(catA, rowA, catB, rowB, val, description) {
 	var re = /[ :|]/g,
 	    cell = document.getElementById((catA.replace(re, "_") + ":" + rowA.replace(re, "_") + "|" + catB.replace(re, "_") + ":" + rowB.replace(re, "_")).toUpperCase()) || document.getElementById((catB.replace(re, "_") + ":" + rowB.replace(re, "_") + "|" + catA.replace(re, "_") + ":" + rowA.replace(re, "_")).toUpperCase());
 	if (cell === null) {
+		console.log("Invalid Cell: ", arguments);
 		return;
 	}
 	switch (val) {
@@ -69,6 +71,7 @@ function addRule(catA, catB, rowB, method, catC, rowC, description) {
 		b => b.textContent.toUpperCase() == catC,
 		b => b.textContent.toUpperCase() == rowC
 	].every(fn => !Array.prototype.slice.apply(buttons).filter(fn).every(b => {b.click(); return false;}))) {
+		console.log("Invalid Rule: ", arguments);
 		document.getElementById("overlay").getElementsByTagName("button")[0].click();
 		return false;
 	}
