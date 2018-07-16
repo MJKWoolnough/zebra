@@ -135,29 +135,29 @@ window.addEventListener("load", function() {
 			};
 			return obj;
 		    }()),
-		    adjacentCells = function(cellNum) {
+		    adjacentCells = function(cellNum, distance) {
 			var cells = [];
-			if (cellNum > 0) {
-				cells.push(cellNum - 1);
+			if (cellNum > distance - 1) {
+				cells.push(cellNum - distance);
 			}
-			if (cellNum < numRows - 1) {
-				cells.push(cellNum + 1);
+			if (cellNum < numRows - distance - 1) {
+				cells.push(cellNum + distance);
 			}
 			return cells;
 		    },
-		    adjacentTo = function(catA, catB, rowB, catC, rowC) {
+		    adjacentTo = function(distance, catA, catB, rowB, catC, rowC) {
 			var changed = false,
 			    dataB = data[catB][rowB][catA],
 			    dataC = data[catC][rowC][catA];
 			Object.keys(dataB).every(function(val, num) {
-				if (dataB[val].Get() === 0 && adjacentCells(num).every(c => dataC[Object.keys(dataC)[c]].Get() === -1)) {
+				if (dataB[val].Get() === 0 && adjacentCells(num, distance).every(c => dataC[Object.keys(dataC)[c]].Get() === -1)) {
 					dataB[val].Set(-1);
 					changed = true;
 				}
 				return true;
 			});
 			Object.keys(dataC).every(function(val, num) {
-				if (dataC[val].Get() === 0 && adjacentCells(num).every(c => dataB[Object.keys(dataB)[c]].Get() === -1)) {
+				if (dataC[val].Get() === 0 && adjacentCells(num, distance).every(c => dataB[Object.keys(dataB)[c]].Get() === -1)) {
 					dataC[val].Set(-1);
 					changed = true;
 				}
@@ -447,7 +447,7 @@ window.addEventListener("load", function() {
 				});
 			    },
 			    modes = {
-				"Adjacent To": adjacentTo,
+				"Adjacent To": adjacentTo.bind(null, 1),
 				"Left/Up Of": leftOf,
 				"Right/Down Of": function(catA, catB, rowB, catC, rowC) {return leftOf(catA, catC, rowC, catB, rowB);},
 				"Before": before,
