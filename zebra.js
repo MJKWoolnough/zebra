@@ -135,106 +135,6 @@ window.addEventListener("load", function() {
 			};
 			return obj;
 		    }()),
-		    adjacentCells = function(cellNum, distance) {
-			var cells = [];
-			if (cellNum > distance - 1) {
-				cells.push(cellNum - distance);
-			}
-			if (cellNum < numRows - distance - 1) {
-				cells.push(cellNum + distance);
-			}
-			return cells;
-		    },
-		    adjacentTo = function(distance, catA, catB, rowB, catC, rowC) {
-			var changed = false,
-			    dataB = data[catB][rowB][catA],
-			    dataC = data[catC][rowC][catA];
-			Object.keys(dataB).every(function(val, num) {
-				if (dataB[val].Get() === 0 && adjacentCells(num, distance).every(c => dataC[Object.keys(dataC)[c]].Get() === -1)) {
-					dataB[val].Set(-1);
-					changed = true;
-				}
-				return true;
-			});
-			Object.keys(dataC).every(function(val, num) {
-				if (dataC[val].Get() === 0 && adjacentCells(num, distance).every(c => dataB[Object.keys(dataB)[c]].Get() === -1)) {
-					dataC[val].Set(-1);
-					changed = true;
-				}
-				return true;
-			});
-			return changed;
-		    },
-		    leftOf = function(catA, catB, rowB, catC, rowC) {
-			var changed = false,
-			    dataB = data[catB][rowB][catA],
-			    dataC = data[catC][rowC][catA];
-			[dataB[Object.keys(dataB)[numRows-1]], dataC[Object.keys(dataC)[0]]].filter(cell => cell.Get() == 0).forEach(function(cell) {
-				cell.Set(-1);
-				changed = true;
-			});
-			Object.keys(dataC).slice(1).every(function(val, num) {
-				var other = dataB[Object.keys(dataB)[num]];
-				switch (dataC[val].Get()) {
-				case -1:
-					if (other.Get() !== -1) {
-						other.Set(-1);
-						changed = true;
-					}
-					break;
-				case 0:
-					break;
-				case 1:
-					if (other.Get() !== 1) {
-						other.Set(1);
-						changed = true;
-						return false;
-					}
-				}
-				return true;
-			});
-			Object.keys(dataB).slice(0, -1).every(function(val, num) {
-				var other = dataC[Object.keys(dataC)[num+1]];
-				switch (dataB[val].Get()) {
-				case -1:
-					if (other.Get() !== -1) {
-						other.Set(-1);
-						changed = true;
-					}
-					break;
-				case 0:
-					break;
-				case 1:
-					if (other.Get() !== 1) {
-						other.Set(1);
-						changed = true;
-						return false;
-					}
-				}
-				return true;
-			});
-			return changed;
-		    },
-		    before = function(catA, catB, rowB, catC, rowC) {
-			var changed = false,
-			    dataB = data[catB][rowB][catA],
-			    dataC = data[catC][rowC][catA];
-			Object.keys(dataB).every(function(k) {
-				if (dataC[k].Get() === 0) {
-					dataC[k].Set(-1);
-					changed = true;
-				}
-				return dataB[k].Get() === -1;
-			});
-			Object.keys(dataC).reverse().every(function(k) {
-				if (dataB[k].Get() === 0) {
-					dataB[k].Set(-1);
-					changed = true;
-				}
-				return dataC[k].Get() === -1;
-			});
-			return changed;
-		    },
 		    reduceBool = (acc, val) => acc ? acc : val,
 		    blankPivot = (function() {
 			var cats = categories.map(cat => cat.Title),
@@ -404,118 +304,196 @@ window.addEventListener("load", function() {
 		});
 		addRule.textContent = "Add Rule";
 		addRule.addEventListener("click", (function() {
-			var overlay = createElement("div"),
+			var ruleFunc = function(catA, catB, rowB, catC, rowC, not, leftRight, far) {
+				var changed = false,
+				     dataB = data[catB][rowB][catA],
+				     dataC = data[catC][rowC][catA];
+				[[dataB, dataC], [dataC, dataB]].forEach(data => Object.keys(data[0]).forEach(function(val, num) {
+					if (data[0][val].Get() === 0) {
+						return;
+					}
+					var possibleCells = [];
+					if (leftRight > -1) {
+						if (far === -1) {
+							possibleCells.concat(Array(num).fill(0).map((v, n) => n));
+						} else {
+							possibleCells.push(val - far);
+						}
+					}
+					if (leftRight < 1) {
+						if (far === -1) {
+							possibleCells.concat(Array(numRows - num - 1).fill(0).map((v, n) => n + num + 1));
+						} else {
+							possibleCells.push(val + far);
+						}
+					}
+					possibleCells = possibleCells.filter(n => n >= 0 && n < numRows);
+					if (not) {
+						possibleCells = Array(numRows).fill(0).map((v, n) => n).filter(n => !possibleCells.includes(n));
+					}
+					if (possibleCells.every(c => data[0][Object.keys(data[0])[c]].Get() === -1)) {
+						dataB[val].Set(-1);
+						changed = true;
+					}
+				}));
+				return changed;
+			    },
+			    overlay = createElement("div"),
 			    content = overlay.appendChild(createElement("div")),
-			    close = content.appendChild(createElement("button")),
-			    ongoing = content.appendChild(createElement("div")),
-			    title = content.appendChild(createElement("h1")),
-			    choices = content.appendChild(createElement("div")),
-			    catA = "",
-			    catAClick = function(c) {
-				catA = c;
-				ongoing.textContent = "In " + c;
-				title.textContent = "First Pivot Category";
-				clearNode(choices);
-				Object.keys(data).filter(k => k != c).forEach(function(cat) {
-					var butt = choices.appendChild(createElement("button"));
-					butt.textContent = cat;
-					butt.addEventListener("click", catBClick.bind(null, cat));
-				});
-			    },
-			    catB = "",
-			    catBClick = function(c) {
-				catB = c;
-				ongoing.textContent += ", Category " + c;
-				title.textContent = "First Pivot Row";
-				clearNode(choices);
-				Object.keys(data[c]).forEach(function(cat) {
-					var butt = choices.appendChild(createElement("button"));
-					butt.textContent = cat;
-					butt.addEventListener("click", rowBClick.bind(null, cat));
-				});
-			    },
-			    rowB = "",
-			    rowBClick = function(c) {
-				rowB = c;
-				ongoing.textContent += ", Row " + c;
-				title.textContent = "Method";
-				clearNode(choices);
-				Object.keys(modes).forEach(function(m) {
-					var butt = choices.appendChild(createElement("button"));
-					butt.textContent = m;
-					butt.addEventListener("click", modeClick.bind(null, m));
-				});
-			    },
-			    modes = {
-				"Adjacent To": adjacentTo.bind(null, 1),
-				"Left/Up Of": leftOf,
-				"Right/Down Of": function(catA, catB, rowB, catC, rowC) {return leftOf(catA, catC, rowC, catB, rowB);},
-				"Before": before,
-				"After": function(catA, catB, rowB, catC, rowC) {return before(catA, catC, rowC, catB, rowB);},
-			    },
-			    mode = function(){},
-			    modeClick = function(c) {
-				mode = modes[c];
-				ongoing.textContent += ", is " + c + " ";
-				title.textContent = "Second Pivot Category";
-				clearNode(choices);
-				Object.keys(data).filter(k => k != c).forEach(function(cat) {
-					var butt = choices.appendChild(createElement("button"));
-					butt.textContent = cat;
-					butt.addEventListener("click", catCClick.bind(null, cat));
-				});
-			    },
-			    catC = "",
-			    catCClick = function(c) {
-				catC = c;
-				ongoing.textContent += "Category " + c;
-				title.textContent = "Second Pivot Row";
-				clearNode(choices);
-				Object.keys(data[c]).filter(k => c !== catB || k != rowB).forEach(function(cat) {
-					var butt = choices.appendChild(createElement("button"));
-					butt.textContent = cat;
-					butt.addEventListener("click", rowCClick.bind(null, cat));
-				});
-			    },
-			    rowC = "",
-			    rowCClick = function(c) {
-				    rowC = c;
-				    ongoing.textContent += ", Row " + c + ".";
-				    title.textContent = "";
-				    clearNode(choices);
-				    var butt = choices.appendChild(createElement("button"));
-				    butt.textContent = "Add Rule";
-				    butt.addEventListener("click", addRule);
-			    },
-			    none = function(){return true;},
-			    addRule = function() {
-				var t = rulesList.appendChild(createElement("tr")),
-				    r = t.appendChild(createElement("td")),
-				    remove = r.appendChild(createElement("button")),
-				    n = rules.push(mode.bind(null, catA, catB, rowB, catC, rowC)) - 1,
-				    desc = r.appendChild(createElement("span"));
-				remove.textContent = "X";
-				remove.addEventListener("click", function() {
-					rulesList.removeChild(t);
-					rules[n] = none;
-				});
-				desc.textContent = ongoing.textContent;
-				close.click();
+			    closer = content.appendChild(createElement("button")),
+			    rule = content.appendChild(createElement("div")),
+			    ruleParts = ["In Category ", "???", ", Category ", "???", ", Row ", "???", " is ", "???", " Category ", "???", ", Row ", "???", "."].map(t => {var s = rule.appendChild(createElement("span"));s.textContent = t; return s}).filter((a, i) => i&1 == 1),
+			    catFrag = new DocumentFragment(),
+			    valFrag = new DocumentFragment(),
+			    labelCatA = content.appendChild(createElement("label")),
+			    catASel = content.appendChild(createElement("select")),
+			    labelCatB = content.appendChild(createElement("label")),
+			    catBSel = content.appendChild(createElement("select")),
+			    labelValB = content.appendChild(createElement("label")),
+			    valBSel = content.appendChild(createElement("select")),
+			    labelCatC = content.appendChild(createElement("label")),
+			    catCSel = content.appendChild(createElement("select")),
+			    labelValC = content.appendChild(createElement("label")),
+			    valCSel = content.appendChild(createElement("select")),
+			    done = content.appendChild(createElement("button")),
+			    enableButton = function() {
+				if (catASel.selectedIndex > 0 && catBSel.selectedIndex > 0 && valBSel.selectedIndex > 0 && catCSel.selectedIndex > 0 && valCSel.selectedIndex > 0) {
+					done.removeAttribute("disabled");
+				}
 			    };
-			overlay.setAttribute("id", "overlay");
-			choices.setAttribute("id", "choices");
-			close.addEventListener("click", document.body.removeChild.bind(document.body, overlay));
-			close.setAttribute("class", "closer");
-			close.innerText = "X";
-			return function() {
-				ongoing.textContent = "";
-				clearNode(choices);
-				title.textContent = "Main Category";
-				Object.keys(data).forEach(function(cat) {
-					var butt = choices.appendChild(createElement("button"));
-					butt.textContent = cat;
-					butt.addEventListener("click", catAClick.bind(null, cat));
+			categories.forEach(cat => {
+				var o = catFrag.appendChild(createElement("option")),
+				    g = valFrag.appendChild(createElement("optgroup"));
+				o.textContent = cat.Title;
+				o.setAttribute("value", cat.Title);
+				g.setAttribute("label", cat.Title);
+				cat.Values.forEach(v => {
+					var o = g.appendChild(createElement("option"));
+					o.textContent = v;
+					o.setAttribute("value", v);
 				});
+			});
+			content.insertBefore(createElement("h1"), rule).textContent = "Add Rule";
+			overlay.setAttribute("id", "overlay");
+			closer.addEventListener("click", document.body.removeChild.bind(document.body, overlay));
+			closer.setAttribute("class", "closer");
+			closer.textContent = "X";
+
+			["Category A", "Category B", "Value B", "Rule", "Category C", "Value C"].forEach((t, n) => ruleParts[n].setAttribute("title", t));
+			
+			labelCatA.textContent = "Category A";
+			labelCatA.setAttribute("for", "catA");
+			catASel.setAttribute("id", "catA");
+			content.insertBefore(createElement("br"), labelCatB);
+			labelCatB.textContent = "Category B";
+			labelCatB.setAttribute("for", "catB");
+			catBSel.setAttribute("id", "catB");
+			content.insertBefore(createElement("br"), labelValB);
+			labelValB.textContent = "Value B";
+			labelValB.setAttribute("for", "valB");
+			valBSel.setAttribute("id", "valB");
+			content.insertBefore(createElement("br"), labelCatC);
+			labelCatC.textContent = "Category C";
+			labelCatC.setAttribute("for", "catC");
+			catCSel.setAttribute("id", "catC");
+			content.insertBefore(createElement("br"), labelValC);
+			labelValC.textContent = "Value C";
+			labelValC.setAttribute("for", "valC");
+			valCSel.setAttribute("id", "valC");
+			content.insertBefore(createElement("br"), done);
+
+
+			catASel.appendChild(createElement("option")).textContent = "--Choose Main Category--";
+			catASel.appendChild(catFrag.cloneNode(true));
+			catASel.addEventListener("change", function() {
+				var val = catASel.selectedIndex;
+				catASel.childNodes[0].setAttribute("disabled", "disabled");
+				catASel.childNodes[0].style.display = "none";
+				[catBSel, catCSel].forEach(s => {
+					s.removeAttribute("disabled");
+					Array.from(s.childNodes).forEach(n => n.removeAttribute("disabled"));
+					s.childNodes[val].setAttribute("disabled", "disabled");
+				});
+				ruleParts[0].textContent = catASel.childNodes[catASel.selectedIndex].getAttribute("value");
+				enableButton();
+			});
+
+			catBSel.appendChild(createElement("option")).textContent = "--Choose Second Category--";
+			catBSel.appendChild(catFrag.cloneNode(true));
+			catBSel.addEventListener("change", function() {
+				catBSel.childNodes[0].setAttribute("disabled", "disabled");
+				catBSel.childNodes[0].style.display = "none";
+				Array.from(valBSel.childNodes).forEach(n => n.style.display = "none");
+				valBSel.childNodes[catBSel.selectedIndex].style.display = "";
+				valBSel.removeAttribute("disabled");
+				valBSel.selectedIndex = 0;
+				ruleParts[1].textContent = catBSel.childNodes[catBSel.selectedIndex].getAttribute("value");
+				ruleParts[2].textContent = "???";
+				enableButton();
+			});
+			valBSel.appendChild(createElement("option")).textContent = "--Choose Cat Row--";
+			valBSel.appendChild(valFrag.cloneNode(true));
+			valBSel.addEventListener("click", function() {
+				valBSel.childNodes[0].setAttribute("disabled", "disabled");
+				valBSel.childNodes[0].style.display = "none";
+				Array.from(valCSel.childNodes).filter((v, i) => i != 0).forEach(n => n.childNodes.forEach(m => m.removeAttribute("disabled")));
+				valCSel.getElementsByTagName("option")[valBSel.selectedIndex].setAttribute("disabled", "disabled");
+				ruleParts[2].textContent = valBSel.getElementsByTagName("option")[valBSel.selectedIndex].getAttribute("value");
+				enableButton();
+			});
+
+			catCSel.appendChild(createElement("option")).textContent = "--Choose Third Category--";
+			catCSel.appendChild(catFrag);
+			catCSel.addEventListener("change", function() {
+				catCSel.childNodes[0].setAttribute("disabled", "disabled");
+				catCSel.childNodes[0].style.display = "none";
+				Array.from(valCSel.childNodes).forEach(n => n.style.display = "none");
+				valCSel.childNodes[catCSel.selectedIndex].style.display = "";
+				valCSel.removeAttribute("disabled");
+				valCSel.selectedIndex = 0;
+				ruleParts[4].textContent = catCSel.childNodes[catCSel.selectedIndex].getAttribute("value");
+				ruleParts[5].textContent = "???";
+				enableButton();
+			});
+			valCSel.appendChild(createElement("option")).textContent = "--Choose Cat Row--";
+			valCSel.appendChild(valFrag);
+			valCSel.addEventListener("click", function() {
+				valCSel.childNodes[0].setAttribute("disabled", "disabled");
+				valCSel.childNodes[0].style.display = "none";
+				Array.from(valBSel.childNodes).filter((v, i) => i != 0).forEach(n => n.childNodes.forEach(m => m.removeAttribute("disabled")));
+				valBSel.getElementsByTagName("option")[valCSel.selectedIndex].setAttribute("disabled", "disabled");
+				ruleParts[5].textContent = valCSel.getElementsByTagName("option")[valCSel.selectedIndex].getAttribute("value");
+				enableButton();
+			});
+
+			// ?not
+			// within/exactly
+			// n = [0..numRows]
+			// before/after/around
+
+			done.textContent = "Add";
+			done.addEventListener("click", function() {
+
+			});
+
+			return function() {
+				ruleParts.forEach(t => t.textContent = "???");
+				catASel.childNodes[0].style.display = "";
+				catASel.childNodes[0].removeAttribute("disabled");
+				catASel.selectedIndex = 0;
+				[catBSel, valBSel, catCSel, valCSel].forEach(s => {
+					s.setAttribute("disabled", "disabled");
+					s.style.display = "";
+					s.selectedIndex = 0;
+					Array.from(s.childNodes).forEach(o => {
+						o.removeAttribute("disabled")
+						o.style.display = "";
+						Array.from(o.childNodes).filter(op => op.nodeType !== 3).forEach(op => {
+							op.removeAttribute("disabled");
+						});
+					});
+				});
+				done.setAttribute("disabled", "disabled");
 				document.body.appendChild(overlay);
 			};
 		}()));
