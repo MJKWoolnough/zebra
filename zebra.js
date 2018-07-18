@@ -308,36 +308,47 @@ window.addEventListener("load", function() {
 				var changed = false,
 				     dataB = data[catB][rowB][catA],
 				     dataC = data[catC][rowC][catA];
-				[[dataB, dataC], [dataC, dataB]].forEach(data => Object.keys(data[0]).forEach(function(val, num) {
-					if (data[0][val].Get() === 0) {
-						return;
-					}
-					var possibleCells = [];
-					if (leftRight > -1) {
-						if (far === -1) {
-							possibleCells.concat(Array(num).fill(0).map((v, n) => n));
-						} else {
-							possibleCells.push(val - far);
+				[[dataB, dataC], [dataC, dataB]].forEach(data => {
+					Object.keys(data[0]).forEach(function(val, num) {
+						if (data[0][val].Get() !== 0) {
+							return;
 						}
-					}
-					if (leftRight < 1) {
-						if (far === -1) {
-							possibleCells.concat(Array(numRows - num - 1).fill(0).map((v, n) => n + num + 1));
-						} else {
-							possibleCells.push(val + far);
+						var possibleCells = [];
+						if (leftRight > -1) {
+							if (far < 0) {
+								possibleCells = possibleCells.concat(Array(-far).fill(0).map((v, n) => num - n - 1));
+							} else {
+								possibleCells.push(num - far);
+							}
 						}
+						if (leftRight < 1) {
+							if (far < 0) {
+								possibleCells = possibleCells.concat(Array(-far).fill(0).map((v, n) => n + num + 1));
+							} else {
+								possibleCells.push(num + far);
+							}
+						}
+						possibleCells = possibleCells.filter(n => n >= 0 && n < numRows);
+						if (not) {
+							possibleCells = Array(numRows).fill(0).map((v, n) => n).filter(n => !possibleCells.includes(n));
+						}
+						if (possibleCells.every(c => data[1][Object.keys(data[1])[c]].Get() === -1)) {
+							data[0][val].Set(-1);
+							changed = true;
+						}
+					})
+					switch (leftRight) {
+					case -1:
+						leftRight = 1;
+						break;
+					case 1:
+						leftRight = -1;
+						break;
 					}
-					possibleCells = possibleCells.filter(n => n >= 0 && n < numRows);
-					if (not) {
-						possibleCells = Array(numRows).fill(0).map((v, n) => n).filter(n => !possibleCells.includes(n));
-					}
-					if (possibleCells.every(c => data[0][Object.keys(data[0])[c]].Get() === -1)) {
-						dataB[val].Set(-1);
-						changed = true;
-					}
-				}));
+				});
 				return changed;
 			    },
+			    none = function() {},
 			    overlay = createElement("div"),
 			    content = overlay.appendChild(createElement("div")),
 			    closer = content.appendChild(createElement("button")),
@@ -345,21 +356,40 @@ window.addEventListener("load", function() {
 			    ruleParts = ["In Category ", "???", ", Category ", "???", ", Row ", "???", " is ", "???", " Category ", "???", ", Row ", "???", "."].map(t => {var s = rule.appendChild(createElement("span"));s.textContent = t; return s}).filter((a, i) => i&1 == 1),
 			    catFrag = new DocumentFragment(),
 			    valFrag = new DocumentFragment(),
-			    labelCatA = content.appendChild(createElement("label")),
-			    catASel = content.appendChild(createElement("select")),
-			    labelCatB = content.appendChild(createElement("label")),
-			    catBSel = content.appendChild(createElement("select")),
-			    labelValB = content.appendChild(createElement("label")),
-			    valBSel = content.appendChild(createElement("select")),
-			    labelCatC = content.appendChild(createElement("label")),
-			    catCSel = content.appendChild(createElement("select")),
-			    labelValC = content.appendChild(createElement("label")),
-			    valCSel = content.appendChild(createElement("select")),
+			    inputs = [
+					["Category A", "select"],
+					["Category B", "select"],
+					["Value B", "select"],
+					["Not", "input"],
+					["Within", "select"],
+				        ["Distance", "select"],
+				        ["Direction", "select"],
+					["Category C", "select"],
+					["Value C",  "select"]
+			        ].map(n => {
+					var l = content.appendChild(createElement("label")),
+					    m = content.appendChild(createElement(n[1])),
+					    id = n[0].split(" ").map((v, i) => i === 0 ? v.toLowerCase() : v).join("");
+					content.appendChild(createElement("br"));
+					l.textContent = n[0];
+					l.setAttribute("for", id);
+					m.setAttribute("id", id);
+					return m;
+				}),
+			    catASel = inputs[0],
+			    catBSel = inputs[1],
+			    valBSel = inputs[2],
+			    catCSel = inputs[7],
+			    valCSel = inputs[8],
 			    done = content.appendChild(createElement("button")),
 			    enableButton = function() {
 				if (catASel.selectedIndex > 0 && catBSel.selectedIndex > 0 && valBSel.selectedIndex > 0 && catCSel.selectedIndex > 0 && valCSel.selectedIndex > 0) {
 					done.removeAttribute("disabled");
 				}
+			    },
+			    writeRule = function() {
+				ruleParts[3].textContent = (inputs[3].checked ? "Not " : "") + (inputs[4].selectedIndex > 0 ? inputs[4].value + " " + (inputs[5].selectedIndex + 1) + " " : "") + inputs[6].value;
+				enableButton();
 			    };
 			categories.forEach(cat => {
 				var o = catFrag.appendChild(createElement("option")),
@@ -376,36 +406,17 @@ window.addEventListener("load", function() {
 			content.insertBefore(createElement("h1"), rule).textContent = "Add Rule";
 			overlay.setAttribute("id", "overlay");
 			closer.addEventListener("click", document.body.removeChild.bind(document.body, overlay));
-			closer.setAttribute("class", "closer");
+			closer.setAttribute("id", "closer");
 			closer.textContent = "X";
 
 			["Category A", "Category B", "Value B", "Rule", "Category C", "Value C"].forEach((t, n) => ruleParts[n].setAttribute("title", t));
-			
-			labelCatA.textContent = "Category A";
-			labelCatA.setAttribute("for", "catA");
-			catASel.setAttribute("id", "catA");
-			content.insertBefore(createElement("br"), labelCatB);
-			labelCatB.textContent = "Category B";
-			labelCatB.setAttribute("for", "catB");
-			catBSel.setAttribute("id", "catB");
-			content.insertBefore(createElement("br"), labelValB);
-			labelValB.textContent = "Value B";
-			labelValB.setAttribute("for", "valB");
-			valBSel.setAttribute("id", "valB");
-			content.insertBefore(createElement("br"), labelCatC);
-			labelCatC.textContent = "Category C";
-			labelCatC.setAttribute("for", "catC");
-			catCSel.setAttribute("id", "catC");
-			content.insertBefore(createElement("br"), labelValC);
-			labelValC.textContent = "Value C";
-			labelValC.setAttribute("for", "valC");
-			valCSel.setAttribute("id", "valC");
-			content.insertBefore(createElement("br"), done);
-
 
 			catASel.appendChild(createElement("option")).textContent = "--Choose Main Category--";
 			catASel.appendChild(catFrag.cloneNode(true));
 			catASel.addEventListener("change", function() {
+				if (catASel.selectedIndex === 0) {
+					return;
+				}
 				var val = catASel.selectedIndex;
 				catASel.childNodes[0].setAttribute("disabled", "disabled");
 				catASel.childNodes[0].style.display = "none";
@@ -421,6 +432,9 @@ window.addEventListener("load", function() {
 			catBSel.appendChild(createElement("option")).textContent = "--Choose Second Category--";
 			catBSel.appendChild(catFrag.cloneNode(true));
 			catBSel.addEventListener("change", function() {
+				if (catBSel.selectedIndex === 0) {
+					return;
+				}
 				catBSel.childNodes[0].setAttribute("disabled", "disabled");
 				catBSel.childNodes[0].style.display = "none";
 				Array.from(valBSel.childNodes).forEach(n => n.style.display = "none");
@@ -433,7 +447,10 @@ window.addEventListener("load", function() {
 			});
 			valBSel.appendChild(createElement("option")).textContent = "--Choose Cat Row--";
 			valBSel.appendChild(valFrag.cloneNode(true));
-			valBSel.addEventListener("click", function() {
+			valBSel.addEventListener("change", function() {
+				if (valBSel.selectedIndex === 0) {
+					return;
+				}
 				valBSel.childNodes[0].setAttribute("disabled", "disabled");
 				valBSel.childNodes[0].style.display = "none";
 				Array.from(valCSel.childNodes).filter((v, i) => i != 0).forEach(n => n.childNodes.forEach(m => m.removeAttribute("disabled")));
@@ -445,6 +462,9 @@ window.addEventListener("load", function() {
 			catCSel.appendChild(createElement("option")).textContent = "--Choose Third Category--";
 			catCSel.appendChild(catFrag);
 			catCSel.addEventListener("change", function() {
+				if (catCSel.selectedIndex === 0) {
+					return;
+				}
 				catCSel.childNodes[0].setAttribute("disabled", "disabled");
 				catCSel.childNodes[0].style.display = "none";
 				Array.from(valCSel.childNodes).forEach(n => n.style.display = "none");
@@ -457,7 +477,10 @@ window.addEventListener("load", function() {
 			});
 			valCSel.appendChild(createElement("option")).textContent = "--Choose Cat Row--";
 			valCSel.appendChild(valFrag);
-			valCSel.addEventListener("click", function() {
+			valCSel.addEventListener("change", function() {
+				if (valCSel.selectedIndex === 0) {
+					return;
+				}
 				valCSel.childNodes[0].setAttribute("disabled", "disabled");
 				valCSel.childNodes[0].style.display = "none";
 				Array.from(valBSel.childNodes).filter((v, i) => i != 0).forEach(n => n.childNodes.forEach(m => m.removeAttribute("disabled")));
@@ -466,14 +489,53 @@ window.addEventListener("load", function() {
 				enableButton();
 			});
 
-			// ?not
-			// within/exactly
-			// n = [0..numRows]
-			// before/after/around
+			inputs[3].setAttribute("type", "checkbox");
+			["", "Within", "Exactly"].forEach(t => {
+				var o = inputs[4].appendChild(createElement("option"));
+				o.setAttribute("value", t);
+				o.textContent = t;
+			});
+			inputs[4].addEventListener("change", function() {
+				if (inputs[4].selectedIndex === 0) {
+					inputs[5].setAttribute("disabled", "disabled");
+				} else {
+					inputs[5].removeAttribute("disabled");
+				}
+				writeRule();
+			});
+
+			for (var i = 1; i < numRows; i++) {
+				var o = inputs[5].appendChild(createElement("option"));
+				o.setAttribute("value", i);
+				o.textContent = i;
+			}
+			inputs[5].setAttribute("disabled", "disabled");
+			["On One Side of", "After", "Before"].forEach(t => {
+				var o = inputs[6].appendChild(createElement("option"));
+				o.setAttribute("value", t);
+				o.textContent = t;
+			});
+
+			inputs[3].addEventListener("change", writeRule);
+			inputs[5].addEventListener("change", writeRule);
+			inputs[6].addEventListener("change", writeRule);
 
 			done.textContent = "Add";
+			done.setAttribute("id", "done");
 			done.addEventListener("click", function() {
-
+				var t = rulesList.appendChild(createElement("tr")),
+				    r = t.appendChild(createElement("td")),
+				    remove = r.appendChild(createElement("button")),
+				    far = inputs[4].selectedIndex === 0 ? -numRows : (inputs[5].selectedIndex + 1) * (inputs[4].selectedIndex === 1 ? -1 : 1),
+				    leftRight = inputs[6].selectedIndex === 2 ? -1: inputs[6].selectedIndex,
+				    n = rules.push(ruleFunc.bind(null, catASel.value, catBSel.value, valBSel.value, catCSel.value, valCSel.value, inputs[3].checked, leftRight, far)) - 1;
+				r.appendChild(createElement("span")).textContent = rule.textContent;
+				remove.textContent = "X";
+				remove.addEventListener("click", function() {
+					rulesList.removeChild(t);
+					rules[n] = none;
+				});
+				closer.click();
 			});
 
 			return function() {
@@ -493,7 +555,13 @@ window.addEventListener("load", function() {
 						});
 					});
 				});
+				inputs[3].checked = false;
+				inputs[4].selectedIndex = 0;
+				inputs[5].selectedIndex = 0;
+				inputs[6].selectedIndex = 0;
+				inputs[5].setAttribute("disabled", "disabled");
 				done.setAttribute("disabled", "disabled");
+				writeRule();
 				document.body.appendChild(overlay);
 			};
 		}()));
