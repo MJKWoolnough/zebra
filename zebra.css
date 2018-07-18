@@ -96,7 +96,21 @@ tbody tr:last-child th {
 	padding-top: 1em;
 }
 
-.closer {
+#overlay label {
+	display: block;
+	float: left;
+	width: 6em;
+}
+
+#overlay br {
+	clear: left;
+}
+
+#overlay label:after {
+	content: ":";
+}
+
+#closer {
 	position: absolute;
 	right: 0;
 	top: 0;
