@@ -337,14 +337,7 @@ window.addEventListener("load", function() {
 							changed = true;
 						}
 					})
-					switch (leftRight) {
-					case -1:
-						leftRight = 1;
-						break;
-					case 1:
-						leftRight = -1;
-						break;
-					}
+					leftRight = -leftRight;
 				});
 				return changed;
 			    },
