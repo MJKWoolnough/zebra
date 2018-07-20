@@ -88,7 +88,11 @@ function addRule(catA, catB, rowB, method, catC, rowC, description) {
 
 	method = method.toUpperCase();
 
-	// Legacy
+	if (method.startsWith("NOT ")) {
+		method = method.substring(4);
+		document.getElementById("not").checked = true;
+	}
+
 	switch (method) {
 	case "LEFT/UP OF":
 		method = "EXACTLY 1 BEFORE";
@@ -104,10 +108,6 @@ function addRule(catA, catB, rowB, method, catC, rowC, description) {
 	    distance = document.getElementById("distance"),
 	    direction = document.getElementById("direction"),
 	    readNum = true;
-	if (method.startsWith("NOT ")) {
-		method = method.substring(4);
-		document.getElementById("not").checked = true;
-	}
 	if (method.startsWith("WITHIN ")) {
 		within.selectedIndex = 1;
 		within.dispatchEvent(new CustomEvent("change"));
