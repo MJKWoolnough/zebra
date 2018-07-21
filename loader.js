@@ -152,6 +152,9 @@ function addRule(catA, catB, rowB, method, catC, rowC, description) {
 		return false;
 	}
 	document.getElementById("done").click();
+	if (typeof description !== "undefined") {
+		Array.from(document.getElementsByTagName("td")).pop().setAttribute("title", description);
+	}
 	return true;
 }
 
