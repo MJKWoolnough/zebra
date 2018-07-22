@@ -350,25 +350,25 @@ window.addEventListener("load", function() {
 			    catFrag = new DocumentFragment(),
 			    valFrag = new DocumentFragment(),
 			    inputs = [
-					["Category A", "select"],
-					["Category B", "select"],
-					["Value B", "select"],
-					["Not", "input"],
-					["Within", "select"],
-				        ["Distance", "select"],
-				        ["Direction", "select"],
-					["Category C", "select"],
-					["Value C",  "select"]
-			        ].map(n => {
-					var l = content.appendChild(createElement("label")),
-					    m = content.appendChild(createElement(n[1])),
-					    id = n[0].split(" ").map((v, i) => i === 0 ? v.toLowerCase() : v).join("");
-					content.appendChild(createElement("br"));
-					l.textContent = n[0];
-					l.setAttribute("for", id);
-					m.setAttribute("id", id);
-					return m;
-				}),
+				["Category A", "select"],
+				["Category B", "select"],
+				["Value B", "select"],
+				["Not", "input"],
+				["Within", "select"],
+				["Distance", "select"],
+				["Direction", "select"],
+				["Category C", "select"],
+				["Value C",  "select"]
+			    ].map(n => {
+				var l = content.appendChild(createElement("label")),
+				    m = content.appendChild(createElement(n[1])),
+				    id = n[0].split(" ").map((v, i) => i === 0 ? v.toLowerCase() : v).join("");
+				content.appendChild(createElement("br"));
+				l.textContent = n[0];
+				l.setAttribute("for", id);
+				m.setAttribute("id", id);
+				return m;
+			    }),
 			    catASel = inputs[0],
 			    catBSel = inputs[1],
 			    valBSel = inputs[2],
@@ -381,8 +381,7 @@ window.addEventListener("load", function() {
 				}
 			    },
 			    writeRule = function() {
-				ruleParts[3].textContent = (inputs[3].checked ? "Not " : "") + (inputs[4].selectedIndex > 0 ? inputs[4].value + " " + (inputs[5].selectedIndex + 1) + " " : "") + inputs[6].value;
-				enableButton();
+				ruleParts[3].textContent = (inputs[3].checked ? "Not " : "") + (inputs[4].selectedIndex > 0 && inputs[5].selectedIndex === 0 && inputs[6].selectedIndex === 0 ? "Adjacent To" : (inputs[4].selectedIndex > 0 ? inputs[4].value + " " + (inputs[5].selectedIndex + 1) + " " : "") + inputs[6].value);
 			    };
 			categories.forEach(cat => {
 				var o = catFrag.appendChild(createElement("option")),
@@ -503,12 +502,27 @@ window.addEventListener("load", function() {
 				o.textContent = i;
 			}
 			inputs[5].setAttribute("disabled", "disabled");
-			["On One Side of", "After", "Before"].forEach(t => {
+			["", "After", "Before"].forEach(t => {
 				var o = inputs[6].appendChild(createElement("option"));
 				o.setAttribute("value", t);
 				o.textContent = t;
 			});
 
+			inputs[4].addEventListener("change", function() {
+				switch (inputs[4].selectedIndex) {
+				case 0:
+					inputs[6].firstChild.textContent = "On One Side Of";
+					break;
+				case 1:
+					inputs[6].firstChild.textContent = "Of";
+					break;
+				case 2:
+					inputs[6].firstChild.textContent = "From";
+					break;
+				}
+				inputs[6].firstChild.value = inputs[6].firstChild.textContent;
+				writeRule();
+			});
 			inputs[3].addEventListener("change", writeRule);
 			inputs[5].addEventListener("change", writeRule);
 			inputs[6].addEventListener("change", writeRule);
@@ -553,6 +567,8 @@ window.addEventListener("load", function() {
 				inputs[5].selectedIndex = 0;
 				inputs[6].selectedIndex = 0;
 				inputs[5].setAttribute("disabled", "disabled");
+				inputs[6].firstChild.textContent = "On One Side Of";
+				inputs[6].firstChild.value = inputs[6].firstChild.textContent;
 				done.setAttribute("disabled", "disabled");
 				writeRule();
 				document.body.appendChild(overlay);
