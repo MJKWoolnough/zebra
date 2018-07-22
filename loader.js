@@ -136,6 +136,10 @@ function addRule(catA, catB, rowB, method, catC, rowC, description) {
 	}
 	switch (method) {
 	case "ON ONE SIDE OF":
+	case "OF":
+	case "FROM":
+	case "OF/FROM":
+	case "FROM/OF":
 		direction.selectedIndex = 0;
 		direction.dispatchEvent(new CustomEvent("change"));
 		break;
