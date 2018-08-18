@@ -1,20 +1,19 @@
 "use strict";
 function setData(data) {
-	var firstKey = Object.keys(data)[0];
+	const firstKey = Object.keys(data)[0];
 	if (!Object.keys(data).slice(1).every(key => data[key].length == data[firstKey].length)) {
 		console.log("All categories must be of the same length");
 		return;
 	}
-	var butts = document.getElementsByTagName("button"),
-	    cats = document.getElementById("info"),
-	    rows;
+	const butts = document.getElementsByTagName("button"),
+	      cats = document.getElementById("info");
 	while (cats.childElementCount > Object.keys(data).length) {
 		butts[butts.length-1].click();
 	}
 	while (cats.childElementCount < Object.keys(data).length) {
 		butts[0].click();
 	}
-	rows = cats.firstChild.getElementsByTagName("li");
+	const rows = cats.firstChild.getElementsByTagName("li");
 	while (rows.length > data[firstKey].length) {
 		butts[2].click();
 	}
@@ -22,7 +21,7 @@ function setData(data) {
 		butts[1].click();
 	}
 	Object.keys(data).forEach(function(key, pos) {
-		var inputs = Array.prototype.slice.apply(document.getElementsByTagName("div")[pos+1].getElementsByTagName("input"));
+		const inputs = Array.prototype.slice.apply(document.getElementsByTagName("div")[pos+1].getElementsByTagName("input"));
 		inputs[0].value = key;
 		data[key].forEach((val, pos) => inputs[pos+1].value = val);
 		inputs.forEach(function(input) {
@@ -35,7 +34,7 @@ function setData(data) {
 }
 
 function setCell(catA, rowA, catB, rowB, val, description) {
-	var re = /[ :|]/g,
+	const re = /[ :|]/g,
 	    cell = document.getElementById((catA.replace(re, "_") + ":" + rowA.replace(re, "_") + "|" + catB.replace(re, "_") + ":" + rowB.replace(re, "_")).toUpperCase()) || document.getElementById((catB.replace(re, "_") + ":" + rowB.replace(re, "_") + "|" + catA.replace(re, "_") + ":" + rowA.replace(re, "_")).toUpperCase());
 	if (cell === null) {
 		console.log("Invalid Cell: ", arguments);
@@ -56,7 +55,7 @@ function setCell(catA, rowA, catB, rowB, val, description) {
 
 function addRule(catA, catB, rowB, method, catC, rowC, description) {
 	document.getElementsByTagName("button")[1].click();
-	var done = 0;
+	let done = 0;
 	[
 		["categoryA", catA.toUpperCase()],
 		["categoryB", catB.toUpperCase()],
@@ -64,9 +63,8 @@ function addRule(catA, catB, rowB, method, catC, rowC, description) {
 		["categoryC", catC.toUpperCase()],
 		["valueC",    rowC.toUpperCase(), "categoryC"]
 	].every(function(v) {
-		var e = document.getElementById(v[0]),
-		    os = Array.from(e.childNodes),
-		    add = 0;
+		const e = document.getElementById(v[0]);
+		let os = Array.from(e.childNodes), add = 0;
 		if (v.length === 3) {
 			os = Array.from(os[document.getElementById(v[2]).selectedIndex].childNodes);
 			add = (document.getElementById(v[2]).selectedIndex - 1) * os.length + 1;
@@ -104,10 +102,10 @@ function addRule(catA, catB, rowB, method, catC, rowC, description) {
 		method = "EXACTLY 1 ON ONE SIDE OF";
 		break;
 	}
-	var within = document.getElementById("within"),
+	const within = document.getElementById("within"),
 	    distance = document.getElementById("distance"),
-	    direction = document.getElementById("direction"),
-	    readNum = true;
+	    direction = document.getElementById("direction");
+	let readNum = true;
 	if (method.startsWith("WITHIN ")) {
 		within.selectedIndex = 1;
 		within.dispatchEvent(new CustomEvent("change"));
@@ -120,7 +118,7 @@ function addRule(catA, catB, rowB, method, catC, rowC, description) {
 		readNum = false;
 	}
 	if (readNum) {
-		var num = method.split(" ")[0];
+		const num = method.split(" ")[0];
 		if (Array.from(distance.childNodes).every(function(o, n) {
 			if (o.hasAttribute("value") && o.getAttribute("value") === num) {
 				distance.selectedIndex = n;
