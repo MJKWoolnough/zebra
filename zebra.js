@@ -144,7 +144,7 @@ window.addEventListener("load", function() {
 					return false;
 				}
 				return true;
-			}).reduce((acc, val) => acc ? val : acc) ||
+			}).reduce((acc, val) => val && acc) ||
 			!categories.map((cat, i) => cat.Values.map(row => row.replace(/[ |:]/, "_").toUpperCase()).map((row, j, arr) => {
 				if (arr.indexOf(row) !== j) {
 					info.getElementsByTagName("div")[i].getElementsByTagName("input")[j+1].setAttribute("class", "error");
