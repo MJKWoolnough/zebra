@@ -76,7 +76,7 @@ window.addEventListener("load", function() {
 						createHTML(
 							"ol",
 							{},
-							Array.from({"length": numRows}).map(() => createHTML("li", {}, createHTML(
+							Array.from({"length": numRows}, () => createHTML("li", {}, createHTML(
 								"input",
 								{
 									"onfocus": function() {
@@ -133,7 +133,7 @@ window.addEventListener("load", function() {
 			alert("Need a minimum of 3 categories and 2 rows");
 			return;
 		}
-		const categories = Array.from(info.getElementsByTagName("div")).map(cat => {
+		const categories = Array.from(info.getElementsByTagName("div"), cat => {
 			const inputs = Array.from(cat.getElementsByTagName("input"));
 			return {"Title": inputs[0].value, "Values": inputs.slice(1).map(input => input.value)};
 		      });
@@ -603,7 +603,7 @@ window.addEventListener("load", function() {
 										[
 											"Distance",
 											writeRule,
-											Array.from({"length": numRows}).map((v, n) => (n+1).toString()).map(n => createHTML("option", {"value": n}, n))
+											Array.from({"length": numRows}, (v, n) => (n+1).toString()).map(n => createHTML("option", {"value": n}, n))
 										],
 										[
 											"Direction",
