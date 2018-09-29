@@ -2,23 +2,23 @@
 window.addEventListener("load", function() {
 	const createHTML = (function() {
 		const ns = document.getElementsByTagName("html")[0].namespaceURI,
-		      childrenArr = function(elem, children, pre) {
+		      childrenArr = function(elem, children) {
 			if (typeof children === "string") {
 				children.split("\n").forEach((child, n) => {
-					if (n > 0 && !pre) {
+					if (n > 0) {
 						elem.appendChild(document.createElementNS(ns, "br"))
 					}
 					elem.appendChild(document.createTextNode(child));
 				});
 			} else if (children) {
 				if (children.hasOwnProperty("length")) {
-					Array.from(children).forEach(c => childrenArr(elem, c, pre));
-				} else {
+					Array.from(children).forEach(c => childrenArr(elem, c));
+				} else if (children instanceof Node) {
 					elem.appendChild(children);
 				}
 			}
 		      };
-		return function(element, properties, children, pre) {
+		return function(element, properties, children) {
 			const elem = typeof element === "string" ? document.createElementNS(ns, element) : element;
 			if (typeof properties === "string") {
 				[properties, children] = [children, properties];
@@ -35,7 +35,7 @@ window.addEventListener("load", function() {
 					}
 				});
 			}
-			childrenArr(elem, children, pre);
+			childrenArr(elem, children);
 			return elem;
 		};
 	      }()),
@@ -125,9 +125,7 @@ window.addEventListener("load", function() {
 		}
 	));
 	document.body.appendChild(info);
-	addCategory.click();
-	addCategory.click();
-	addCategory.click();
+	Array.from({length: 3}, addCategory.click.bind(addCategory));
 	document.body.insertBefore(createHTML("button",	"Start", {"onclick": function() {
 		if (info.childElementCount < 3 || numRows < 2) {
 			alert("Need a minimum of 3 categories and 2 rows");
